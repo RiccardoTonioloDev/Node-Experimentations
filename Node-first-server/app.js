@@ -35,6 +35,7 @@ const server = http.createServer(routes); //Se arriva una richiesta, viene usata
                                           //Allo stesso modo, li è implicita la richiesta
                                           //di parametri
 
+                                          
 server.listen(3000); //Attiva la modalità listen sul server.
 //Questo vuol dire che il server continuerà ad
 //ascoltare richieste sulla porta 3000
