@@ -8,6 +8,11 @@ const app = express(); //In questo modo inizializziamo un oggetto per fare si ch
                        //express riesca a gestire per noi un bel po' di cose
                        //dietro le quinte.
 
+const adminRoutes = require("./routes/admin");
+const shopRoutes = require("./routes/shop");
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({extended: true}));//Effettuerà tutto il body parsing, che prima noi
+                                                  //dovevamo fare manualmente.
 //const { removeListener } = require('process');
 //Per importare moduli non globali però,
 //all'inizio del nome del modulo, serve
@@ -48,25 +53,26 @@ const app = express(); //In questo modo inizializziamo un oggetto per fare si ch
 //    console.log('In the middleware');
 //    next(); //Ci permette di passare al prossimo middlware presente nel codice
 //});
-app.use('/',(req,res,next)=>{
-    console.log("Questo viene sempre eseguito!");
-    next(); //per passare al prossimo middleware
-});
 
-app.use('/add-product',(req, res, next)=>{ //La richiesta per questo path, viene gestita
+//Tutti gli app.use sono stati spostati nel route di admin
+//app.use('/add-product',(req, res, next)=>{ //La richiesta per questo path, viene gestita
                                            //solo da questo, perchè la priorità è dal 
                                            //basso verso l'alto. (a meno che non si usi next() [Non
                                            //si deve fare dopo aver già fatto send]).
-    console.log('In the middleware');
-    res.send('<h1>Add product</h1>');
-});
+//    res.send('<form action="/product" method="POST"><input type="text" name="title"><button type="submit">Add Product</form>');
+//});
 
-app.use('/',(req, res, next)=>{ //Questo è il secondo middleware
-    console.log('In the middleware');
-    res.send('<h1>Hello from express</h1>'); //possiamo comunque utilizzare setHeader(), ma la funzione
+//app.post('/product',(req,res,next)=>{ //Verrà utilizzato solo per richieste entranti in post.
+                                      //Esiste anche app.get per fare la stessa cosa ma con il get.
+//    console.log(req.body);
+//    res.redirect('/');
+//});
+
+//app.use('/',(req, res, next)=>{ //Questo è il secondo middleware
+//    res.send('<h1>Hello from express</h1>'); //possiamo comunque utilizzare setHeader(), ma la funzione
                                              //send(), è in grado di impostarlo da solo, e dinamicamente
                                              //riconoscendo il tipo mandato in risposta.
-});
+//});
 
 //const server = http.createServer(app); //A questo punto possiamo utilizzare il nostro oggetto creato
                                        //prima tramite express.
@@ -76,6 +82,12 @@ app.use('/',(req, res, next)=>{ //Questo è il secondo middleware
 //ascoltare richieste sulla porta 3000
 //dell'indirizzo passato (in questo caso si usa
 //il default, ovvero localhost).
+
+app.use(adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+                      //dato all'interno del file admin come middleware.
+app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+                      //dato all'interno del file shop come middleware.
+//MANCA UNA ROUTE DI DEFAULT
 
 app.listen(3000); //Effettua sia la creazione del server, che la messa in 
               //listen di questo.
