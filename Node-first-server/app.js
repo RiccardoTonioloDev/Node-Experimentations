@@ -40,15 +40,28 @@ const app = express(); //In questo modo inizializziamo un oggetto per fare si ch
                                           //Allo stesso modo, li è implicita la richiesta
                                           //di parametri (rimosso)
 
-app.use((req, res, next)=>{ //Questo è il primo middleware
+//app.use((req, res, next)=>{ //Questo è il primo middleware
                             //Definiamo quindi, come gestire una qualsiasi richiesta
                             //entrante, definendo i middleware tramite ".use", dove
                             //i tre parametri come prima sono: richiesta, risposta e
                             //next (descritto dopo).
-    console.log('In the middleware');
-    next(); //Ci permette di passare al prossimo middlware presente nel codice
+//    console.log('In the middleware');
+//    next(); //Ci permette di passare al prossimo middlware presente nel codice
+//});
+app.use('/',(req,res,next)=>{
+    console.log("Questo viene sempre eseguito!");
+    next(); //per passare al prossimo middleware
 });
-app.use((req, res, next)=>{ //Questo è il secondo middleware
+
+app.use('/add-product',(req, res, next)=>{ //La richiesta per questo path, viene gestita
+                                           //solo da questo, perchè la priorità è dal 
+                                           //basso verso l'alto. (a meno che non si usi next() [Non
+                                           //si deve fare dopo aver già fatto send]).
+    console.log('In the middleware');
+    res.send('<h1>Add product</h1>');
+});
+
+app.use('/',(req, res, next)=>{ //Questo è il secondo middleware
     console.log('In the middleware');
     res.send('<h1>Hello from express</h1>'); //possiamo comunque utilizzare setHeader(), ma la funzione
                                              //send(), è in grado di impostarlo da solo, e dinamicamente
