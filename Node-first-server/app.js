@@ -8,9 +8,11 @@ const app = express(); //In questo modo inizializziamo un oggetto per fare si ch
                        //express riesca a gestire per noi un bel po' di cose
                        //dietro le quinte.
 
+const path = require('path');
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const bodyParser = require('body-parser');
+const roodDir = require("./util/path");
 app.use(bodyParser.urlencoded({extended: true}));//Effettuerà tutto il body parsing, che prima noi
                                                   //dovevamo fare manualmente.
 //const { removeListener } = require('process');
@@ -83,11 +85,22 @@ app.use(bodyParser.urlencoded({extended: true}));//Effettuerà tutto il body par
 //dell'indirizzo passato (in questo caso si usa
 //il default, ovvero localhost).
 
-app.use(adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+app.use("/admin",adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
                       //dato all'interno del file admin come middleware.
+                      //Con lo /admin, andiamo a denotare nell'url la path di appartenenza.
 app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
                       //dato all'interno del file shop come middleware.
-//MANCA UNA ROUTE DI DEFAULT
+
+//PAGINA DI DEFAULT
+app.use('/', (req,res,next)=>{
+    res.status(404).sendFile(path.join(roodDir,"views","pageNotFound.html")); //Prima abbiamo indicato il codice da
+                                                     //inserire nell'header, e poi abbiamo
+                                                     //mandato la pagina di risposta.
+                                                     //La funzione di join ci permette tramite la path
+                                                     //di riuscire a ricostruire il percorso per reperire
+                                                     //qualsiasi file, su qualsiasi sistema operativo.
+                                                     //Send file serve appunto per restituire file.
+});
 
 app.listen(3000); //Effettua sia la creazione del server, che la messa in 
               //listen di questo.
