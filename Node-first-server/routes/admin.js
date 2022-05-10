@@ -5,6 +5,8 @@ const router = express.Router();
 
 const rootDir = require("../util/path");
 
+const products = [];
+
 // admin/add-product (GET)
 router.get('/add-product',(req, res, next)=>{ //La richiesta per questo path, viene gestita
                                            //solo da questo, perchè la priorità è dal 
@@ -17,8 +19,10 @@ router.get('/add-product',(req, res, next)=>{ //La richiesta per questo path, vi
     // admin/product (POST)
 router.post('/add-product',(req,res,next)=>{ //Verrà utilizzato solo per richieste entranti in post.
                                       //Esiste anche app.get per fare la stessa cosa ma con il get.
-    console.log(req.body);
+    products.push({title: req.body.title});
     res.redirect('/');
 });
 
-module.exports = router;
+exports.routes = router;
+exports.products = products;
+//In questo modo possiamo esportare più elementi facendo riferimento allo stesso file.

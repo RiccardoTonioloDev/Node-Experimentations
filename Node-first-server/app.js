@@ -8,13 +8,24 @@ const app = express(); //In questo modo inizializziamo un oggetto per fare si ch
                        //express riesca a gestire per noi un bel po' di cose
                        //dietro le quinte.
 
+app.set('view engine', 'pug');//Possiamo importare direttamente così
+                              //solo perchè pug è ottimizzato per express.
+app.set('views','views');//In questo modo con il primo parametro specifichiamo
+                         //che vogliamo dire dove sono presenti le nostre
+                         //views (specifichiamo cosa deve fare la funzione),
+                         //mentre con il secondo, diciamo a che cartella
+                         //si possono trovare
+
 const path = require('path');
-const adminRoutes = require("./routes/admin");
+const adminData = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const bodyParser = require('body-parser');
 const roodDir = require("./util/path");
 app.use(bodyParser.urlencoded({extended: true}));//Effettuerà tutto il body parsing, che prima noi
                                                   //dovevamo fare manualmente.
+app.use(express.static(path.join(__dirname,'public'))); //In questo modo qualsiasi richiesta di file (quindi elementi statici)
+                                                        //viene inoltrata all'interno di path/public (per questo in shop.html, non
+                                                        //indirizziamo a public/css/main.css, ma solo a css/main.css)
 //const { removeListener } = require('process');
 //Per importare moduli non globali però,
 //all'inizio del nome del modulo, serve
@@ -85,7 +96,7 @@ app.use(bodyParser.urlencoded({extended: true}));//Effettuerà tutto il body par
 //dell'indirizzo passato (in questo caso si usa
 //il default, ovvero localhost).
 
-app.use("/admin",adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+app.use("/admin",adminData.routes); //In questo modo considerà in modo automatico le routes che gli abbiamo
                       //dato all'interno del file admin come middleware.
                       //Con lo /admin, andiamo a denotare nell'url la path di appartenenza.
 app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
