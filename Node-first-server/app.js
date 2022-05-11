@@ -4,17 +4,25 @@ const http = require("http"); //Modo per importare file in Node
 //globale.
 
 const express = require('express'); //importiamo express
+const expressHbs = require("express-handlebars");
 const app = express(); //In questo modo inizializziamo un oggetto per fare si che
                        //express riesca a gestire per noi un bel po' di cose
                        //dietro le quinte.
 
-app.set('view engine', 'pug');//Possiamo importare direttamente così
+//app.engine("handlebars",expressHbs({
+//    layoutsDir : 'views/layouts',
+//    defaultLayout: 'main-layout'
+//}));//Per usare handlebars dobbiamo per forza configurare manualmente
+//l'engine, poichè non è incluso fin da sempre in express.
+//app.set('view engine', 'pug');//Possiamo importare direttamente così
                               //solo perchè pug è ottimizzato per express.
+app.set("view engine","ejs");
 app.set('views','views');//In questo modo con il primo parametro specifichiamo
                          //che vogliamo dire dove sono presenti le nostre
                          //views (specifichiamo cosa deve fare la funzione),
                          //mentre con il secondo, diciamo a che cartella
                          //si possono trovare
+
 
 const path = require('path');
 const adminData = require("./routes/admin");
@@ -104,7 +112,7 @@ app.use(shopRoutes); //In questo modo considerà in modo automatico le routes ch
 
 //PAGINA DI DEFAULT
 app.use('/', (req,res,next)=>{
-    res.status(404).sendFile(path.join(roodDir,"views","pageNotFound.html")); //Prima abbiamo indicato il codice da
+    res.status(404).render("pageNotFound",{pageTitle: "404"});//sendFile(path.join(roodDir,"views","pageNotFound.html")); //Prima abbiamo indicato il codice da
                                                      //inserire nell'header, e poi abbiamo
                                                      //mandato la pagina di risposta.
                                                      //La funzione di join ci permette tramite la path
