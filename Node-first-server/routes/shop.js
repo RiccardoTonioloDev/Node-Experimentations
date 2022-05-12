@@ -13,7 +13,7 @@ router.get('/',(req, res, next)=>{ //Questo è il secondo middleware
     res.render('shop',{
         prods: products,
         pageTitle: "My Shop",
-        path: "/",
+        path: '/',
         hasProducts: products.length > 0,
         productCSS: true,
         activeShop: true
