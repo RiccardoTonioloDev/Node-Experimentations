@@ -25,10 +25,10 @@ app.set('views','views');//In questo modo con il primo parametro specifichiamo
 
 
 const path = require('path');
-const adminData = require("./routes/admin");
+const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const bodyParser = require('body-parser');
-const roodDir = require("./util/path");
+const errorController = require("./controllers/error");
 app.use(bodyParser.urlencoded({extended: true}));//Effettuerà tutto il body parsing, che prima noi
                                                   //dovevamo fare manualmente.
 app.use(express.static(path.join(__dirname,'public'))); //In questo modo qualsiasi richiesta di file (quindi elementi statici)
@@ -104,22 +104,14 @@ app.use(express.static(path.join(__dirname,'public'))); //In questo modo qualsia
 //dell'indirizzo passato (in questo caso si usa
 //il default, ovvero localhost).
 
-app.use("/admin",adminData.routes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+app.use("/admin",adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
                       //dato all'interno del file admin come middleware.
                       //Con lo /admin, andiamo a denotare nell'url la path di appartenenza.
 app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
                       //dato all'interno del file shop come middleware.
 
 //PAGINA DI DEFAULT
-app.use('/', (req,res,next)=>{
-    res.status(404).render("pageNotFound",{pageTitle: "404"});//sendFile(path.join(roodDir,"views","pageNotFound.html")); //Prima abbiamo indicato il codice da
-                                                     //inserire nell'header, e poi abbiamo
-                                                     //mandato la pagina di risposta.
-                                                     //La funzione di join ci permette tramite la path
-                                                     //di riuscire a ricostruire il percorso per reperire
-                                                     //qualsiasi file, su qualsiasi sistema operativo.
-                                                     //Send file serve appunto per restituire file.
-});
+app.use('/', errorController.get404);
 
 app.listen(3000); //Effettua sia la creazione del server, che la messa in 
               //listen di questo.
