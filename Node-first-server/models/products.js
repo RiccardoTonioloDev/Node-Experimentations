@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { callbackify } = require("util");
 const rootDir = require("../util/path");
 
 const p = path.join(rootDir, "data", "products.json");
@@ -8,7 +7,7 @@ const p = path.join(rootDir, "data", "products.json");
 const getProductsFromFile = (callBack) => {
     fs.readFile(p, (err, fileContent) => {
         if (err) {
-            callbBack([]); //dobbiamo fare il return qui per assicurarci
+            callBack([]); //dobbiamo fare il return qui per assicurarci
             //che la parte successiva non venga mai eseguita.
         } else {
             callBack(JSON.parse(fileContent));
