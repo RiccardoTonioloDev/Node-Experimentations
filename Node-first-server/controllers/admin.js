@@ -19,7 +19,12 @@ exports.getAddProduct = (req, res, next) => {
 exports.postAddProduct = (req, res, next) => {
     //Verrà utilizzato solo per richieste entranti in post.
     //Esiste anche app.get per fare la stessa cosa ma con il get.
-    const product = new Product(req.body.title);
+    const title = req.body.title;
+    const imageUrl = req.body.imageUrl;
+    const description = req.body.description;
+    const price = req.body.price;
+
+    const product = new Product(title, imageUrl, description, price);
     product.save();
     res.redirect("/");
 };
