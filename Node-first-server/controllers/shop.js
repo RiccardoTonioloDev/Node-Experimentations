@@ -17,6 +17,16 @@ exports.getProducts = (req, res, next) => {
     });
 };
 
+exports.getProduct = (req, res, next) => {
+    const prodId = req.params.productId; //Prendiamo ciò che abbiamo identificato come productId
+    //nel nostro URL, (che abbiamo quindi identificato essere un parametro della richiesta), e lo
+    //passiamo in una apposita variabile.
+    Product.findById(prodId, (prod) => {
+        console.log(prod);
+    });
+    res.redirect("/");
+};
+
 exports.getIndex = (req, res, next) => {
     Product.fetchAll((products) => {
         res.render("shop/index", {
@@ -40,5 +50,12 @@ exports.getCheckout = (req, res, next) => {
     res.render("shop/checkout", {
         path: "/checkout",
         pageTitle: "Checkout",
+    });
+};
+
+exports.getOrders = (req, res, next) => {
+    res.render("shop/orders", {
+        path: "/orders",
+        pageTitle: "Your Orders",
     });
 };

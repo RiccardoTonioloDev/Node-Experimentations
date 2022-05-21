@@ -24,6 +24,7 @@ module.exports = class Product {
     }
 
     save() {
+        this.id = Math.random().toString();
         getProductsFromFile((products) => {
             products.push(this); //DOBBIAMO USARE UNA FUNZIONE A FRECCIA:
             //solo in questo modo facciamo ancora riferimento
@@ -38,5 +39,12 @@ module.exports = class Product {
         //usando static come keyword, io specifico che uso questo metodo
         //sulla classe stessa, e non su un oggetto specifico.
         getProductsFromFile(callBack);
+    }
+
+    static findById(id, cb) {
+        getProductsFromFile((products) => {
+            const product = products.find((p) => p.id == id);
+            cb(product);
+        });
     }
 };
