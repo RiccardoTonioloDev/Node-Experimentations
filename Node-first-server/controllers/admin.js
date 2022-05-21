@@ -6,12 +6,9 @@ exports.getAddProduct = (req, res, next) => {
     //basso verso l'alto. (a meno che non si usi next() [Non
     //si deve fare dopo aver già fatto send]).
     //res.sendFile(path.join(rootDir, "views","add-product.html"));
-    res.render("admin/add-product", {
+    res.render("admin/edit-product", {
         pageTitle: "Add product",
         path: "/admin/add-product",
-        formsCSS: true,
-        productCSS: true,
-        activeAddProduct: true,
     });
 }; //abbiamo aggiunto nel form /admin/ prima di product, questo perchè fuori, nell'app, è
 //dichiarato che tutte le routes in questa page appartengono alla path admin.
@@ -38,5 +35,22 @@ exports.getProducts = (req, res, next) => {
         }); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
         //dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
         //Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
+    });
+};
+
+exports.getEditProduct = (req, res, next) => {
+    //La richiesta per questo path, viene gestita
+    //solo da questo, perchè la priorità è dal
+    //basso verso l'alto. (a meno che non si usi next() [Non
+    //si deve fare dopo aver già fatto send]).
+    //res.sendFile(path.join(rootDir, "views","add-product.html"));
+    const editMode = req.query.edit;
+    if (!editMode) {
+        return res.redirect("/");
+    }
+    res.render("admin/edit-product", {
+        pageTitle: "Edit product",
+        path: "/admin/edit-product",
+        editing: editMode,
     });
 };

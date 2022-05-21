@@ -1,4 +1,5 @@
 const Product = require("../models/products");
+const Cart = require("../models/cart");
 
 exports.getProducts = (req, res, next) => {
     //Questo è il secondo middleware
@@ -22,9 +23,12 @@ exports.getProduct = (req, res, next) => {
     //nel nostro URL, (che abbiamo quindi identificato essere un parametro della richiesta), e lo
     //passiamo in una apposita variabile.
     Product.findById(prodId, (prod) => {
-        console.log(prod);
+        res.render("shop/product-detail", {
+            product: prod,
+            pageTitle: prod.title,
+            path: "/products",
+        });
     });
-    res.redirect("/");
 };
 
 exports.getIndex = (req, res, next) => {
@@ -44,6 +48,14 @@ exports.getCart = (req, res, next) => {
         path: "/cart",
         pageTitle: "Your Cart",
     });
+};
+
+exports.postCart = (req, res, next) => {
+    const prodId = req.body.productId;
+    Product.findById(prodId, (product) => {
+        Cart.addProduct(product.id, product.price);
+    });
+    res.redirect("/cart");
 };
 
 exports.getCheckout = (req, res, next) => {

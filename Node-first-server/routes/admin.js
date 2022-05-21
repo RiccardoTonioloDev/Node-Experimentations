@@ -15,5 +15,7 @@ router.post("/add-product", adminController.postAddProduct);
 // admin/products (GET)
 router.get("/products", adminController.getProducts);
 
+router.get("/edit-product/:productId", adminController.getEditProduct);
+
 module.exports = router;
 //In questo modo possiamo esportare più elementi facendo riferimento allo stesso file.
