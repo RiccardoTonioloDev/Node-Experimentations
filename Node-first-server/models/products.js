@@ -16,7 +16,8 @@ const getProductsFromFile = (callBack) => {
 };
 
 module.exports = class Product {
-    constructor(title, imageUrl, description, price) {
+    constructor(id, title, imageUrl, description, price) {
+        this.id = id;
         this.title = title;
         this.imageUrl = imageUrl;
         this.description = description;
@@ -24,14 +25,23 @@ module.exports = class Product {
     }
 
     save() {
-        this.id = Math.random().toString();
         getProductsFromFile((products) => {
-            products.push(this); //DOBBIAMO USARE UNA FUNZIONE A FRECCIA:
-            //solo in questo modo facciamo ancora riferimento
-            //a un oggetto della classe.
-            fs.writeFile(p, JSON.stringify(products), (err) => {
-                console.log(err);
-            });
+            if (this.id) {
+                const existingProductIndex = products.findIndex((p) => p.id === this.id);
+                const updatedProducts = [...products];
+                updatedProducts[existingProductIndex] = this; //si riferisce all'oggetto passato tramite il form, una volta costruito
+                fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
+                    console.log("Errore durante l'updating del file prodotti: ", err);
+                });
+            } else {
+                this.id = Math.random().toString();
+                products.push(this); //DOBBIAMO USARE UNA FUNZIONE A FRECCIA:
+                //solo in questo modo facciamo ancora riferimento
+                //a un oggetto della classe.
+                fs.writeFile(p, JSON.stringify(products), (err) => {
+                    console.log(err);
+                });
+            }
         });
     }
 

@@ -9,6 +9,7 @@ exports.getAddProduct = (req, res, next) => {
     res.render("admin/edit-product", {
         pageTitle: "Add product",
         path: "/admin/add-product",
+        editing: false,
     });
 }; //abbiamo aggiunto nel form /admin/ prima di product, questo perchè fuori, nell'app, è
 //dichiarato che tutte le routes in questa page appartengono alla path admin.
@@ -21,7 +22,8 @@ exports.postAddProduct = (req, res, next) => {
     const description = req.body.description;
     const price = req.body.price;
 
-    const product = new Product(title, imageUrl, description, price);
+    const product = new Product(null, title, imageUrl, description, price); //serve il null poichè è la prima volta che costruiamo l'oggetto se
+    //lo stiamo creando tramite questa funzione.
     product.save();
     res.redirect("/");
 };
@@ -48,9 +50,29 @@ exports.getEditProduct = (req, res, next) => {
     if (!editMode) {
         return res.redirect("/");
     }
-    res.render("admin/edit-product", {
-        pageTitle: "Edit product",
-        path: "/admin/edit-product",
-        editing: editMode,
+    const prodId = req.params.productId; //In questo modo si prende l'Id dall'URL
+    Product.findById(prodId, (product) => {
+        if (!product) {
+            return res.redirect("/");
+        }
+        res.render("admin/edit-product", {
+            pageTitle: "Edit product",
+            path: "/admin/edit-product",
+            editing: editMode,
+            product: product,
+        });
     });
+};
+
+exports.postEditProduct = (req, res, next) => {
+    const id = req.body.productId;
+    const title = req.body.title;
+    const imageUrl = req.body.imageUrl;
+    const description = req.body.description;
+    const price = req.body.price;
+
+    const updatedProduct = new Product(id, title, imageUrl, description, price); //serve il null poichè è la prima volta che costruiamo l'oggetto se
+    //lo stiamo creando tramite questa funzione.
+    updatedProduct.save();
+    res.redirect("/admin/products");
 };
