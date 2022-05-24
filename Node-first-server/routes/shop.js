@@ -14,4 +14,6 @@ router.get("/orders", shopController.getOrders);
 router.get("/products/:productId", shopController.getProduct); //È importante che ci siano i ":", poichè segnalano
 //a Express.js che quanto segue è un parametro variabile, passato tramite URL.
 
+router.post("/cart-delete-item", shopController.postCartDeleteProduct);
+
 module.exports = router;

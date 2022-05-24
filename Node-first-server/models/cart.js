@@ -12,7 +12,6 @@ module.exports = class Cart {
                 cart = JSON.parse(fileContent);
             }
             const existingProductIndex = cart.products.findIndex((p) => p.id == id);
-            console.log(existingProductIndex);
             const existingProduct = cart.products[existingProductIndex];
             let updatedProduct;
             if (existingProduct) {
@@ -28,6 +27,34 @@ module.exports = class Cart {
             fs.writeFile(p, JSON.stringify(cart), (err) => {
                 console.log("Verifica errori cart: ", err);
             });
+        });
+    }
+
+    static deleteProduct(id, productPrice) {
+        fs.readFile(p, (err, fileContent) => {
+            console.log("Errore cancellazione dal carrello: ", err);
+            const updatedCart = { ...JSON.parse(fileContent) };
+            const product = updatedCart.products.find((p) => p.id === id);
+            if (!product) {
+                return; //Non devo continuare se non ho il prodotto in questione nel carrello.
+            }
+            const productQty = product.qty;
+            updatedCart.products = updatedCart.products.filter((p) => p.id != id);
+            updatedCart.totalPrice = updatedCart.totalPrice - productQty * productPrice;
+            fs.writeFile(p, JSON.stringify(updatedCart), (err) => {
+                console.log("Verifica errori cart (delete): ", err);
+            });
+        });
+    }
+
+    static getCart(cb) {
+        fs.readFile(p, (err, fileContent) => {
+            const cart = JSON.parse(fileContent);
+            if (err) {
+                cb(null);
+            } else {
+                cb(cart);
+            }
         });
     }
 };
