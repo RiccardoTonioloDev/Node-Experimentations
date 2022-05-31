@@ -29,7 +29,7 @@ const shopRoutes = require("./routes/shop");
 const bodyParser = require("body-parser");
 const errorController = require("./controllers/error");
 
-const db = require("./util/database"); //Ora questa sarà la pool che potremmo utilizzare per effettuare le nostre query
+const sequelize = require("./util/database"); //Ora questa sarà la pool che potremmo utilizzare per effettuare le nostre query (sequelize prima si chiamava "db")
 // db.execute("SELECT * FROM products")
 //     .then((result) => {
 //         //Per gestire l'arrivo dei dati richiesti in maniera asincrona.
@@ -125,5 +125,15 @@ app.use(shopRoutes); //In questo modo considerà in modo automatico le routes ch
 //PAGINA DI DEFAULT
 app.use("/", errorController.get404);
 
-app.listen(3000); //Effettua sia la creazione del server, che la messa in
-//listen di questo.
+sequelize
+    .sync()
+    .then((result) => {
+        //console.log(result);
+        app.listen(3000); //Effettua sia la creazione del server, che la messa in
+        //listen di questo.
+        //Mettendo il server qui dentro, diciamo che il server verrà avviato, solo
+        //se la connessione e sync del database avviene con successo.
+    })
+    .catch((err) => {
+        console.log("Errore sync: ", err);
+    }); //Per ogni modello che trova creato all'interno del server, crea una tabella corrispondente.
