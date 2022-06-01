@@ -161,7 +161,7 @@ sequelize
         return user;
     })
     .then((user) => {
-        console.log(user);
+        // console.log(user);
         app.listen(3000); //Effettua sia la creazione del server, che la messa in
         //listen di questo.
         //Mettendo il server qui dentro, diciamo che il server verrà avviato, solo
