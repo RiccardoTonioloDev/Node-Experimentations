@@ -4,10 +4,7 @@ const http = require("http"); //Modo per importare file in Node
 //globale.
 
 const express = require("express"); //importiamo express
-const expressHbs = require("express-handlebars");
-const app = express(); //In questo modo inizializziamo un oggetto per fare si che
-//express riesca a gestire per noi un bel po' di cose
-//dietro le quinte.
+//const expressHbs = require("express-handlebars");
 
 //app.engine("handlebars",expressHbs({
 //    layoutsDir : 'views/layouts',
@@ -16,12 +13,6 @@ const app = express(); //In questo modo inizializziamo un oggetto per fare si ch
 //l'engine, poichè non è incluso fin da sempre in express.
 //app.set('view engine', 'pug');//Possiamo importare direttamente così
 //solo perchè pug è ottimizzato per express.
-app.set("view engine", "ejs");
-app.set("views", "views"); //In questo modo con il primo parametro specifichiamo
-//che vogliamo dire dove sono presenti le nostre
-//views (specifichiamo cosa deve fare la funzione),
-//mentre con il secondo, diciamo a che cartella
-//si possono trovare
 
 const path = require("path");
 const adminRoutes = require("./routes/admin");
@@ -30,6 +21,8 @@ const bodyParser = require("body-parser");
 const errorController = require("./controllers/error");
 
 const sequelize = require("./util/database"); //Ora questa sarà la pool che potremmo utilizzare per effettuare le nostre query (sequelize prima si chiamava "db")
+const Product = require("./models/products");
+const User = require("./models/user");
 // db.execute("SELECT * FROM products")
 //     .then((result) => {
 //         //Per gestire l'arrivo dei dati richiesti in maniera asincrona.
@@ -40,11 +33,34 @@ const sequelize = require("./util/database"); //Ora questa sarà la pool che pot
 //         console.log("Errore connessione al database: ", err);
 //     }); SEMPLICE PROVA DI UTILIZZO DEL DATABASE MySQL
 
+const app = express(); //In questo modo inizializziamo un oggetto per fare si che
+//express riesca a gestire per noi un bel po' di cose
+//dietro le quinte.
+app.set("view engine", "ejs");
+app.set("views", "views"); //In questo modo con il primo parametro specifichiamo
+//che vogliamo dire dove sono presenti le nostre
+//views (specifichiamo cosa deve fare la funzione),
+//mentre con il secondo, diciamo a che cartella
+//si possono trovare
 app.use(express.static(path.join(__dirname, "public"))); //In questo modo qualsiasi richiesta di file (quindi elementi statici)
 //viene inoltrata all'interno di path/public (per questo in shop.html, non
 //indirizziamo a public/css/main.css, ma solo a css/main.css)
+
 app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body parsing, che prima noi
 //dovevamo fare manualmente.
+
+app.use((req, res, next) => {
+    User.findByPk(1)
+        .then((user) => {
+            req.user = user; //Sto aggiungendo un campo alla richiesta
+            //In questo modo successivi middleware, lo avranno a disposizione,
+            //Per gestire lo shop, nel contesto dell'utente trattato.
+            next();
+        })
+        .catch((err) => {
+            console.log("Errore caricamento utente: ", err);
+        });
+});
 
 //const { removeListener } = require('process');
 //Per importare moduli non globali però,
@@ -125,10 +141,27 @@ app.use(shopRoutes); //In questo modo considerà in modo automatico le routes ch
 //PAGINA DI DEFAULT
 app.use("/", errorController.get404);
 
+Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
+//Con constraints=true stiamo dicendo che deve essere prima creata la tabella User, e solo successivamente la tabella product.
+User.hasMany(Product);
+
 sequelize
+    //Forzando il sync, (non si usa in produzione), facciamo in modo che le tabelle vengano cambiate in caso di modifiche allo schema.
+    //Avviene anche in caso di eventuali relazioni.
+    //.sync({ force: true })
     .sync()
     .then((result) => {
+        return User.findByPk(1);
         //console.log(result);
+    })
+    .then((user) => {
+        if (!user) {
+            return User.create({ name: "Max", email: "test@test.com" });
+        }
+        return user;
+    })
+    .then((user) => {
+        console.log(user);
         app.listen(3000); //Effettua sia la creazione del server, che la messa in
         //listen di questo.
         //Mettendo il server qui dentro, diciamo che il server verrà avviato, solo

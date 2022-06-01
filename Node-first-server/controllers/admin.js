@@ -21,15 +21,44 @@ exports.postAddProduct = (req, res, next) => {
     const imageUrl = req.body.imageUrl;
     const description = req.body.description;
     const price = req.body.price;
-
-    Product.create({
-        title: title,
-        price: price,
-        imageUrl: imageUrl,
-        description: description,
-    })
+    console.log("REQ USER ID: " + req.user.id);
+    // const newProduct = Product.build({
+    //     title: title,
+    //     price: price,
+    //     imageUrl: imageUrl,
+    //     description: description,
+    //     userId: req.user.id,
+    // });
+    // console.log(newProduct);
+    // newProduct
+    //     .save()
+    //     .then((result) => {
+    //         console.log("Created product.");
+    //         res.redirect("/admin/products");
+    //     })
+    //     .catch((err) => {
+    //         console.log("Adding product error: ", err);
+    //     }); METODO PER REALIZZARLO IN MANIERA DIFFERITA (PRIMA SI CREA, E POI SI SALVA SUL DATABASE).
+    req.user
+        //  questo metodo viene automaticamente creato, quando nel main noi andiamo a creare la relazione 1
+        // a molti all'interno del main. In tal modo l'id dello user è già inserito.
+        .createProduct({
+            title: title,
+            price: price,
+            imageUrl: imageUrl,
+            description: description,
+        })
+        // Product.create({
+        //     title: title,
+        //     price: price,
+        //     imageUrl: imageUrl,
+        //     description: description,
+        //     userId: req.user.id,
+        // })
         .then((result) => {
+            console.log(result);
             console.log("Created product.");
+            res.redirect("/admin/products");
         })
         .catch((err) => {
             console.log("Adding product error: ", err);
@@ -127,6 +156,18 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
     const id = req.body.productId;
-    Product.deleteById(id);
-    res.redirect("/admin/products");
+    // Product.deleteById(id); ora utilizzo sequelize
+    Product.findByPk(id)
+        .then((product) => {
+            product.destroy(); //Se invoco questo metodo sul prodotto, vado a inviare una query per eliminarlo
+            //Altrimenti posso farlo direttamente sul modello Product, utilizzando all'interno delle parentesi,
+            //un oggetto con specifica where.
+        })
+        .then((result) => {
+            console.log("Destroyed product!");
+            res.redirect("/admin/products");
+        })
+        .catch((err) => {
+            console.log("Errore deleting product: ", err);
+        });
 };
