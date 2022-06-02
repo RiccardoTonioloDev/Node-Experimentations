@@ -125,11 +125,11 @@ exports.postCart = (req, res, next) => {
     //     res.redirect("/cart");
     // });
     req.user
-        .getCart()
+        .getCart() //Prende il carrello
         .then((cart) => {
             fetchedCart = cart;
             return cart.getProducts({ where: { id: prodId } });
-        })
+        }) //Salva il carrello come variabile globale, e manda il prodotto tra quelli del carrello dove l'id è uguale a prodId
         .then((products) => {
             let product;
             if (products.length > 0) {
@@ -141,10 +141,13 @@ exports.postCart = (req, res, next) => {
                 return product;
             }
             return Product.findByPk(prodId);
-        })
+        }) //Se quel prodotto non era presente nel carrello, allora lo cerca tra i prodotti e lo manda avanti.
+        //Se il prodotto era presente nel carrello, allora ne salva la quantità per incrementarla di uno (la quantità
+        //è una variabile globale), e poi manda avanti il prodotto.
         .then((product) => {
             return fetchedCart.addProduct(product, { through: { quantity: newQuantity } });
-        })
+        }) //Al carrello che è stato precedentemente salvato come variabile globale della funzione, aggiunge il prodotto, specificandone
+        //la quantità aggiornata (in base a se prima era già presente nel carrello o meno).
         .then(() => {
             res.redirect("/cart");
         })
