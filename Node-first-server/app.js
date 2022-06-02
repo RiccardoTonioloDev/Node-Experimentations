@@ -23,6 +23,8 @@ const errorController = require("./controllers/error");
 const sequelize = require("./util/database"); //Ora questa sarà la pool che potremmo utilizzare per effettuare le nostre query (sequelize prima si chiamava "db")
 const Product = require("./models/products");
 const User = require("./models/user");
+const Cart = require("./models/cart");
+const CartItem = require("./models/cart-item");
 // db.execute("SELECT * FROM products")
 //     .then((result) => {
 //         //Per gestire l'arrivo dei dati richiesti in maniera asincrona.
@@ -144,6 +146,10 @@ app.use("/", errorController.get404);
 Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
 //Con constraints=true stiamo dicendo che deve essere prima creata la tabella User, e solo successivamente la tabella product.
 User.hasMany(Product);
+User.hasOne(Cart);
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, { through: CartItem }); // Con il through noi diciamo qual'è la tabella di giunzione.
+Product.belongsToMany(Cart, { through: CartItem });
 
 sequelize
     //Forzando il sync, (non si usa in produzione), facciamo in modo che le tabelle vengano cambiate in caso di modifiche allo schema.
@@ -162,6 +168,9 @@ sequelize
     })
     .then((user) => {
         // console.log(user);
+        //return user.createCart();
+    })
+    .then((cart) => {
         app.listen(3000); //Effettua sia la creazione del server, che la messa in
         //listen di questo.
         //Mettendo il server qui dentro, diciamo che il server verrà avviato, solo
