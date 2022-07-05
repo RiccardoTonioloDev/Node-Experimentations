@@ -1,5 +1,4 @@
 const Product = require("../models/products");
-const Cart = require("../models/cart");
 
 exports.getProducts = (req, res, next) => {
     //Questo è il secondo middleware
@@ -183,9 +182,49 @@ exports.getCheckout = (req, res, next) => {
     });
 };
 
+exports.postOrder = (req, res, next) => {
+    let tmpProducts;
+    let fetchedCart;
+    req.user
+        .getCart()
+        .then((cart) => {
+            fetchedCart = cart;
+            return cart.getProducts();
+        })
+        .then((products) => {
+            tmpProducts = products;
+            return req.user.createOrder();
+        })
+        .then((order) => {
+            return order.addProducts(
+                tmpProducts.map((product) => {
+                    product.orderItem = { quantity: product.cartItem.quantity };
+                    return product;
+                })
+            );
+        })
+        .then((result) => {
+            return fetchedCart.setProducts(null); //Serve per cancellare tutti gli elementi
+        })
+        .then((result) => {
+            return res.redirect("/orders");
+        })
+        .catch((err) => {
+            console.log("Error on posting an order: ", err);
+        });
+};
+
 exports.getOrders = (req, res, next) => {
-    res.render("shop/orders", {
-        path: "/orders",
-        pageTitle: "Your Orders",
-    });
+    req.user
+        .getOrders({ include: ["products"] }) //Aggiunge un campo per ogni ordine, dove posiziona i relativi prodotti.
+        .then((orders) => {
+            res.render("shop/orders", {
+                path: "/orders",
+                pageTitle: "Your Orders",
+                orders: orders,
+            });
+        })
+        .catch((err) => {
+            console.log("Error getting orders: ", err);
+        });
 };
