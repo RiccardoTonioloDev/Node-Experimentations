@@ -1,4 +1,4 @@
-const http = require("http"); //Modo per importare file in Node
+// const http = require("http"); //Modo per importare file in Node
 // const routes = require("./routes"); //C'è il './' appunto perchè routes (rimosso)
 //non è un file disponibile a livello
 //globale.
@@ -25,6 +25,8 @@ const Product = require("./models/products");
 const User = require("./models/user");
 const Cart = require("./models/cart");
 const CartItem = require("./models/cart-item");
+const Order = require("./models/order");
+const OrderItem = require("./models/order-item");
 // db.execute("SELECT * FROM products")
 //     .then((result) => {
 //         //Per gestire l'arrivo dei dati richiesti in maniera asincrona.
@@ -150,11 +152,15 @@ User.hasOne(Cart);
 Cart.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartItem }); // Con il through noi diciamo qual'è la tabella di giunzione.
 Product.belongsToMany(Cart, { through: CartItem });
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Product, { through: OrderItem });
 
+let copyUser;
 sequelize
     //Forzando il sync, (non si usa in produzione), facciamo in modo che le tabelle vengano cambiate in caso di modifiche allo schema.
     //Avviene anche in caso di eventuali relazioni.
-    //.sync({ force: true })
+    // .sync({ force: true })
     .sync()
     .then((result) => {
         return User.findByPk(1);
@@ -167,8 +173,13 @@ sequelize
         return user;
     })
     .then((user) => {
-        // console.log(user);
-        //return user.createCart();
+        copyUser = user;
+        return user.getCart();
+    })
+    .then((cart) => {
+        if (!cart) {
+            copyUser.createCart();
+        }
     })
     .then((cart) => {
         app.listen(3000); //Effettua sia la creazione del server, che la messa in

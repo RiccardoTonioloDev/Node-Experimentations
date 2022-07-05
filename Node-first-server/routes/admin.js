@@ -16,6 +16,7 @@ router.post("/add-product", adminController.postAddProduct);
 router.get("/products", adminController.getProducts);
 
 router.get("/edit-product/:productId", adminController.getEditProduct);
+// In questo caso :productId serve per fare diventare il numero al posto di productId un parametro, reperibile tramite req.params.productId.
 
 router.post("/edit-product", adminController.postEditProduct);
 

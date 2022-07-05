@@ -102,18 +102,18 @@ exports.getCart = (req, res, next) => {
     req.user
         .getCart()
         .then((cart) => {
-            return cart.getProducts();
+            return cart
+                .getProducts()
+                .then((products) => {
+                    res.render("shop/cart", {
+                        path: "/cart",
+                        pageTitle: "Your Cart",
+                        products: products,
+                    });
+                })
+                .catch((err) => console.log(err));
         })
-        .then((products) => {
-            res.render("shop/cart", {
-                path: "/cart",
-                pageTitle: "Your Cart",
-                products: products,
-            });
-        })
-        .catch((err) => {
-            console.log("Error get cart: ", err);
-        });
+        .catch((err) => console.log(err));
 };
 
 exports.postCart = (req, res, next) => {
@@ -128,6 +128,7 @@ exports.postCart = (req, res, next) => {
         .getCart() //Prende il carrello
         .then((cart) => {
             fetchedCart = cart;
+            console.log("-------------------------------------", cart);
             return cart.getProducts({ where: { id: prodId } });
         }) //Salva il carrello come variabile globale, e manda il prodotto tra quelli del carrello dove l'id è uguale a prodId
         .then((products) => {
@@ -158,10 +159,21 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
     const prodId = req.body.productId;
-    Product.findById(prodId, (product) => {
-        Cart.deleteProduct(prodId, product.price);
-        res.redirect("/cart");
-    });
+    req.user
+        .getCart()
+        .then((cart) => {
+            return cart.getProducts({ where: { id: prodId } });
+        })
+        .then((products) => {
+            const product = products[0];
+            return product.cartItem.destroy();
+        })
+        .then((result) => {
+            res.redirect("/cart");
+        })
+        .catch((err) => {
+            console.log("Error deleting products: ", console.log(err));
+        });
 };
 
 exports.getCheckout = (req, res, next) => {
