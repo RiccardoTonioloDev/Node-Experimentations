@@ -1,9 +1,39 @@
-const Sequelize = require("sequelize");
+const mongoDB = require("mongodb");
+const MongoClient = mongoDB.MongoClient; //Oggetto che utilizzeremo per connetterci
 
-const sequelize = new Sequelize("node-complete", "root", "Camaleonte0220", { dialect: "mysql", host: "localhost" });
-//Questo è come si instaura una connessione al server che lavora in MySQL tramite sequelize.
+let _db;
 
-module.exports = sequelize;
+const mongoConnect = (callback) => {
+    MongoClient.connect("mongodb+srv://RiccardoToniolo:gu75uqNDhqCBGq@cluster0.wpbzy.mongodb.net/shop?retryWrites=true&w=majority")
+        //                                                                                          ^^^^^^ questo shop l'ho aggiunto io
+        // Praticamente se il db con quel nome non esiste, lo crea e poi ci accede, altrimenti ci accede e basta.
+        .then((client) => {
+            console.log("MongoDB connected!");
+            _db = client.db();
+            callback();
+        })
+        .catch((err) => {
+            console.log("Error connection mongoDB: ", err);
+            throw err;
+        });
+};
+
+const getDb = () => {
+    if (_db) {
+        return _db;
+    }
+    throw "No database found!";
+};
+
+exports.mongoConnect = mongoConnect;
+exports.getDb = getDb;
+//TUTTO questo rappresenta cosa usare in un ambiente SQL, ora è commentato per utilizzare mongoDB.
+// const Sequelize = require("sequelize");
+
+// const sequelize = new Sequelize("node-complete", "root", "Camaleonte0220", { dialect: "mysql", host: "localhost" });
+// //Questo è come si instaura una connessione al server che lavora in MySQL tramite sequelize.
+
+// module.exports = sequelize;
 
 // const mysql = require("mysql2");
 

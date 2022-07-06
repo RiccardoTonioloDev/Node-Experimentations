@@ -16,17 +16,20 @@ const express = require("express"); //importiamo express
 
 const path = require("path");
 const adminRoutes = require("./routes/admin");
-const shopRoutes = require("./routes/shop");
+// const shopRoutes = require("./routes/shop");
 const bodyParser = require("body-parser");
 const errorController = require("./controllers/error");
 
-const sequelize = require("./util/database"); //Ora questa sarà la pool che potremmo utilizzare per effettuare le nostre query (sequelize prima si chiamava "db")
-const Product = require("./models/products");
-const User = require("./models/user");
-const Cart = require("./models/cart");
-const CartItem = require("./models/cart-item");
-const Order = require("./models/order");
-const OrderItem = require("./models/order-item");
+const mongoConnect = require("./util/database").mongoConnect;
+
+// Ora usiamo mongoDB quindi non usiamo più nessun derivato di SQL.
+// const sequelize = require("./util/database"); //Ora questa sarà la pool che potremmo utilizzare per effettuare le nostre query (sequelize prima si chiamava "db")
+// const Product = require("./models/products");
+// const User = require("./models/user");
+// const Cart = require("./models/cart");
+// const CartItem = require("./models/cart-item");
+// const Order = require("./models/order");
+// const OrderItem = require("./models/order-item");
 // db.execute("SELECT * FROM products")
 //     .then((result) => {
 //         //Per gestire l'arrivo dei dati richiesti in maniera asincrona.
@@ -54,16 +57,17 @@ app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body 
 //dovevamo fare manualmente.
 
 app.use((req, res, next) => {
-    User.findByPk(1)
-        .then((user) => {
-            req.user = user; //Sto aggiungendo un campo alla richiesta
-            //In questo modo successivi middleware, lo avranno a disposizione,
-            //Per gestire lo shop, nel contesto dell'utente trattato.
-            next();
-        })
-        .catch((err) => {
-            console.log("Errore caricamento utente: ", err);
-        });
+    // User.findByPk(1)
+    //     .then((user) => {
+    //         req.user = user; //Sto aggiungendo un campo alla richiesta
+    //         //In questo modo successivi middleware, lo avranno a disposizione,
+    //         //Per gestire lo shop, nel contesto dell'utente trattato.
+    //         next();
+    //     })
+    //     .catch((err) => {
+    //         console.log("Errore caricamento utente: ", err);
+    //     });
+    next(); //Per ora non utilizzeremo niente di quanto presente poichè usava SQl.
 });
 
 //const { removeListener } = require('process');
@@ -139,54 +143,59 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
 //dato all'interno del file admin come middleware.
 //Con lo /admin, andiamo a denotare nell'url la path di appartenenza.
-app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+// app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
 //dato all'interno del file shop come middleware.
 
 //PAGINA DI DEFAULT
 app.use("/", errorController.get404);
 
-Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
-//Con constraints=true stiamo dicendo che deve essere prima creata la tabella User, e solo successivamente la tabella product.
-User.hasMany(Product);
-User.hasOne(Cart);
-Cart.belongsTo(User);
-Cart.belongsToMany(Product, { through: CartItem }); // Con il through noi diciamo qual'è la tabella di giunzione.
-Product.belongsToMany(Cart, { through: CartItem });
-Order.belongsTo(User);
-User.hasMany(Order);
-Order.belongsToMany(Product, { through: OrderItem });
+// Visto che ora utilizzeremo mongoDB, tutto ciò che riguarda il server in phpMyAdmin, non serve più.
+// Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
+// //Con constraints=true stiamo dicendo che deve essere prima creata la tabella User, e solo successivamente la tabella product.
+// User.hasMany(Product);
+// User.hasOne(Cart);
+// Cart.belongsTo(User);
+// Cart.belongsToMany(Product, { through: CartItem }); // Con il through noi diciamo qual'è la tabella di giunzione.
+// Product.belongsToMany(Cart, { through: CartItem });
+// Order.belongsTo(User);
+// User.hasMany(Order);
+// Order.belongsToMany(Product, { through: OrderItem });
 
-let copyUser;
-sequelize
-    //Forzando il sync, (non si usa in produzione), facciamo in modo che le tabelle vengano cambiate in caso di modifiche allo schema.
-    //Avviene anche in caso di eventuali relazioni.
-    // .sync({ force: true })
-    .sync()
-    .then((result) => {
-        return User.findByPk(1);
-        //console.log(result);
-    })
-    .then((user) => {
-        if (!user) {
-            return User.create({ name: "Max", email: "test@test.com" });
-        }
-        return user;
-    })
-    .then((user) => {
-        copyUser = user;
-        return user.getCart();
-    })
-    .then((cart) => {
-        if (!cart) {
-            copyUser.createCart();
-        }
-    })
-    .then((cart) => {
-        app.listen(3000); //Effettua sia la creazione del server, che la messa in
-        //listen di questo.
-        //Mettendo il server qui dentro, diciamo che il server verrà avviato, solo
-        //se la connessione e sync del database avviene con successo.
-    })
-    .catch((err) => {
-        console.log("Errore sync: ", err);
-    }); //Per ogni modello che trova creato all'interno del server, crea una tabella corrispondente.
+// let copyUser;
+// sequelize
+//     //Forzando il sync, (non si usa in produzione), facciamo in modo che le tabelle vengano cambiate in caso di modifiche allo schema.
+//     //Avviene anche in caso di eventuali relazioni.
+//     // .sync({ force: true })
+//     .sync()
+//     .then((result) => {
+//         return User.findByPk(1);
+//         //console.log(result);
+//     })
+//     .then((user) => {
+//         if (!user) {
+//             return User.create({ name: "Max", email: "test@test.com" });
+//         }
+//         return user;
+//     })
+//     .then((user) => {
+//         copyUser = user;
+//         return user.getCart();
+//     })
+//     .then((cart) => {
+//         if (!cart) {
+//             copyUser.createCart();
+//         }
+//     })
+//     .then((cart) => {
+//         app.listen(3000); //Effettua sia la creazione del server, che la messa in
+//         //listen di questo.
+//         //Mettendo il server qui dentro, diciamo che il server verrà avviato, solo
+//         //se la connessione e sync del database avviene con successo.
+//     })
+//     .catch((err) => {
+//         console.log("Errore sync: ", err);
+//     }); //Per ogni modello che trova creato all'interno del server, crea una tabella corrispondente.
+
+mongoConnect(() => {
+    app.listen(3000);
+});
