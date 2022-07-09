@@ -1,15 +1,18 @@
-const Sequelize = require("sequelize");
+//NON CI SERVE IL MODELLO CART CON MONGODB
+//QUESTO POICHÈ LO INCLUDEREMO ALL'INTERNO DEL DOCUMENTO UTENTE
 
-const sequelize = require("../util/database");
+// const Sequelize = require("sequelize");
 
-const CartItem = sequelize.define("cartItem", {
-    id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        allowNull: false,
-        primaryKey: true,
-    },
-    quantity: Sequelize.INTEGER,
-});
+// const sequelize = require("../util/database");
 
-module.exports = CartItem;
+// const CartItem = sequelize.define("cartItem", {
+//     id: {
+//         type: Sequelize.INTEGER,
+//         autoIncrement: true,
+//         allowNull: false,
+//         primaryKey: true,
+//     },
+//     quantity: Sequelize.INTEGER,
+// });
+
+// module.exports = CartItem;

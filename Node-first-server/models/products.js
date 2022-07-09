@@ -1,14 +1,79 @@
 const getDb = require("../util/database").getDb;
+const mongodb = require("mongodb");
 
 class Product {
-    constructor(title, price, description, imageUrl) {
+    constructor(title, price, description, imageUrl, _id, userId) {
         this.title = title;
         this.imageUrl = imageUrl;
         this.description = description;
         this.price = price;
+        this._id = _id ? new mongodb.ObjectId(id) : null;
+        this.userId = userId;
     }
 
-    save() {}
+    save() {
+        const db = getDb();
+        let dbOp;
+        if (this._id) {
+            //Se l'id è già settato, si fa l'update del prodotto
+            dbOp = db.collection("products").updateOne({ _id: this._id }, { $set: this });
+            //l'id non viene sovrascritto, vengono sovrascritti solo gli altri campi.
+        } else {
+            dbOp = db.collection("products").insertOne(this);
+        }
+        return dbOp
+            .then((result) => {
+                console.log(result);
+            })
+            .catch((err) => {
+                console.log("Error in saving a product: ", err);
+            });
+    }
+    static fetchAll() {
+        const db = getDb();
+        return db
+            .collection("products")
+            .find()
+            .toArray()
+            .then((products) => {
+                return products;
+            })
+            .catch((err) => {
+                //usare il find ci permette di non reperire tutti i documenti subito, ma di
+                //avere un tramite per richiederli uno alla volta. Tipo il current file pointer in C.
+                console.log("Error fatching all products", err);
+            });
+    }
+
+    static findById(prodId) {
+        const db = getDb();
+        return (
+            db
+                .collection("products")
+                .find({ _id: new mongodb.ObjectId(prodId) })
+                .next() //Next mi permette di prelevare il documento selezionato dal find precedentemente fatto
+                //poichè il find è solo un ""puntatore"" ai documenti.
+                .then((product) => {
+                    return product;
+                })
+                .catch((err) => {
+                    console.log("Error fetching a product by id: ", err);
+                })
+        );
+    }
+
+    static deleteById(prodId) {
+        const db = getDb();
+        return db
+            .collection("products")
+            .deleteOne({ _id: new mongodb.ObjectId(prodId) })
+            .then((result) => {
+                console.log("Deleted");
+            })
+            .catch((err) => {
+                console.log("Error during deletion: ", err);
+            });
+    }
 }
 // Commentato per utilizzare mongodb
 // const Sequelize = require("sequelize");

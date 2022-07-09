@@ -16,11 +16,12 @@ const express = require("express"); //importiamo express
 
 const path = require("path");
 const adminRoutes = require("./routes/admin");
-// const shopRoutes = require("./routes/shop");
+const shopRoutes = require("./routes/shop");
 const bodyParser = require("body-parser");
 const errorController = require("./controllers/error");
 
 const mongoConnect = require("./util/database").mongoConnect;
+const User = require("./models/user");
 
 // Ora usiamo mongoDB quindi non usiamo più nessun derivato di SQL.
 // const sequelize = require("./util/database"); //Ora questa sarà la pool che potremmo utilizzare per effettuare le nostre query (sequelize prima si chiamava "db")
@@ -57,6 +58,14 @@ app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body 
 //dovevamo fare manualmente.
 
 app.use((req, res, next) => {
+    User.findById("62c92c1c7b2567af95cc7a0a")
+        .then((user) => {
+            req.user = new User(user.name, user.email, user.cart, user._id);
+            next();
+        })
+        .catch((err) => {
+            console.log("Aggiunzione utente di default a richiesta (ERRORE): ", err);
+        });
     // User.findByPk(1)
     //     .then((user) => {
     //         req.user = user; //Sto aggiungendo un campo alla richiesta
@@ -67,7 +76,6 @@ app.use((req, res, next) => {
     //     .catch((err) => {
     //         console.log("Errore caricamento utente: ", err);
     //     });
-    next(); //Per ora non utilizzeremo niente di quanto presente poichè usava SQl.
 });
 
 //const { removeListener } = require('process');
@@ -143,7 +151,7 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
 //dato all'interno del file admin come middleware.
 //Con lo /admin, andiamo a denotare nell'url la path di appartenenza.
-// app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
 //dato all'interno del file shop come middleware.
 
 //PAGINA DI DEFAULT

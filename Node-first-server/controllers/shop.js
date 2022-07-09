@@ -19,7 +19,21 @@ exports.getProducts = (req, res, next) => {
     //     .catch((err) => {
     //         console.log("Errore fetching products: ", err);
     //     }); Inutile visto che ora usiamo direttamente sequelize
-    Product.findAll()
+    //Ora usiamo mongoDB
+    // Product.findAll()
+    //     .then((products) => {
+    //         res.render("shop/product-list", {
+    //             prods: products,
+    //             pageTitle: "Products",
+    //             path: "/products",
+    //         }); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
+    //         //dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
+    //         //Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
+    //     })
+    //     .catch((err) => {
+    //         console.log("Get index error: ", err);
+    //     });
+    Product.fetchAll()
         .then((products) => {
             res.render("shop/product-list", {
                 prods: products,
@@ -38,6 +52,19 @@ exports.getProduct = (req, res, next) => {
     const prodId = req.params.productId; //Prendiamo ciò che abbiamo identificato come productId
     //nel nostro URL, (che abbiamo quindi identificato essere un parametro della richiesta), e lo
     //passiamo in una apposita variabile.
+    Product.findById(prodId)
+        .then((product) => {
+            res.render("shop/product-detail", {
+                product: product,
+                pageTitle: product.title,
+                path: "/products",
+            }); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
+            //dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
+            //Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
+        })
+        .catch((err) => {
+            console.log("Get product by id error: ", err);
+        });
     // Product.findById(prodId)
     //     .then(([product, fieldData]) => {
     //         res.render("shop/product-detail", {
@@ -49,24 +76,25 @@ exports.getProduct = (req, res, next) => {
     //     .catch((err) => {
     //         console.log("Errore getProduct: ", err);
     //     });
-    Product.findByPk(prodId)
-        .then((product) => {
-            res.render("shop/product-detail", {
-                product: product,
-                pageTitle: product.title,
-                path: "/products",
-            }); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
-            //dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
-            //Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
-        })
-        .catch((err) => {
-            console.log("Get index error: ", err);
-        });
+    //Stiamo usando mongoDB
+    // Product.findByPk(prodId)
+    //     .then((product) => {
+    //         res.render("shop/product-detail", {
+    //             product: product,
+    //             pageTitle: product.title,
+    //             path: "/products",
+    //         }); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
+    //         //dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
+    //         //Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
+    //     })
+    //     .catch((err) => {
+    //         console.log("Get index error: ", err);
+    //     });
 };
 
 exports.getIndex = (req, res, next) => {
-    // Product.fetchAll() Non usiamo più sql puro, quindi questa riga sarà sostituita in:
-    Product.findAll()
+    // Product.fetchAll() Non usiamo più sql puro, quindi questa riga sarà sostituita in: .findAll(), tuttavia stiamo usando mongoDb.
+    Product.fetchAll()
         .then((products) => {
             res.render("shop/index", {
                 prods: products,
@@ -82,6 +110,18 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
+    req.user
+        .getCart()
+        .then((products) => {
+            res.render("shop/cart", {
+                path: "/cart",
+                pageTitle: "Your Cart",
+                products: products,
+            });
+        })
+        .catch((err) => {
+            console.log("Error while getting the cart: ", err);
+        });
     // Cart.getCart((cart) => {
     //     Product.fetchAll((products) => {
     //         const cartProducts = [];
@@ -98,62 +138,75 @@ exports.getCart = (req, res, next) => {
     //         });
     //     });
     // });
-    req.user
-        .getCart()
-        .then((cart) => {
-            return cart
-                .getProducts()
-                .then((products) => {
-                    res.render("shop/cart", {
-                        path: "/cart",
-                        pageTitle: "Your Cart",
-                        products: products,
-                    });
-                })
-                .catch((err) => console.log(err));
-        })
-        .catch((err) => console.log(err));
+    //Ora useremo mongoDB.
+    // req.user
+    //     .getCart()
+    //     .then((cart) => {
+    //         return cart
+    //             .getProducts()
+    //             .then((products) => {
+    //                 res.render("shop/cart", {
+    //                     path: "/cart",
+    //                     pageTitle: "Your Cart",
+    //                     products: products,
+    //                 });
+    //             })
+    //             .catch((err) => console.log(err));
+    //     })
+    //     .catch((err) => console.log(err));
 };
 
 exports.postCart = (req, res, next) => {
     const prodId = req.body.productId;
-    let fetchedCart;
-    let newQuantity = 1;
-    // Product.findById(prodId, (product) => {
-    //     Cart.addProduct(product.id, product.price);
-    //     res.redirect("/cart");
-    // });
-    req.user
-        .getCart() //Prende il carrello
-        .then((cart) => {
-            fetchedCart = cart;
-            console.log("-------------------------------------", cart);
-            return cart.getProducts({ where: { id: prodId } });
-        }) //Salva il carrello come variabile globale, e manda il prodotto tra quelli del carrello dove l'id è uguale a prodId
-        .then((products) => {
-            let product;
-            if (products.length > 0) {
-                product = products[0];
-            }
-            if (product) {
-                const oldQuantity = product.cartItem.quantity;
-                newQuantity = oldQuantity + 1;
-                return product;
-            }
-            return Product.findByPk(prodId);
-        }) //Se quel prodotto non era presente nel carrello, allora lo cerca tra i prodotti e lo manda avanti.
-        //Se il prodotto era presente nel carrello, allora ne salva la quantità per incrementarla di uno (la quantità
-        //è una variabile globale), e poi manda avanti il prodotto.
+
+    Product.findById(prodId)
         .then((product) => {
-            return fetchedCart.addProduct(product, { through: { quantity: newQuantity } });
-        }) //Al carrello che è stato precedentemente salvato come variabile globale della funzione, aggiunge il prodotto, specificandone
-        //la quantità aggiornata (in base a se prima era già presente nel carrello o meno).
-        .then(() => {
+            return req.user.addToCart(product);
+        })
+        .then((result) => {
             res.redirect("/cart");
         })
         .catch((err) => {
-            console.log("Post cart error: ", err);
+            console.log("Error adding to cart: ", err);
         });
+    //Ora usiamo mongoDB
+    // let fetchedCart;
+    // let newQuantity = 1;
+    // // Product.findById(prodId, (product) => {
+    // //     Cart.addProduct(product.id, product.price);
+    // //     res.redirect("/cart");
+    // // });
+    // req.user
+    //     .getCart() //Prende il carrello
+    //     .then((cart) => {
+    //         fetchedCart = cart;
+    //         console.log("-------------------------------------", cart);
+    //         return cart.getProducts({ where: { id: prodId } });
+    //     }) //Salva il carrello come variabile globale, e manda il prodotto tra quelli del carrello dove l'id è uguale a prodId
+    //     .then((products) => {
+    //         let product;
+    //         if (products.length > 0) {
+    //             product = products[0];
+    //         }
+    //         if (product) {
+    //             const oldQuantity = product.cartItem.quantity;
+    //             newQuantity = oldQuantity + 1;
+    //             return product;
+    //         }
+    //         return Product.findByPk(prodId);
+    //     }) //Se quel prodotto non era presente nel carrello, allora lo cerca tra i prodotti e lo manda avanti.
+    //     //Se il prodotto era presente nel carrello, allora ne salva la quantità per incrementarla di uno (la quantità
+    //     //è una variabile globale), e poi manda avanti il prodotto.
+    //     .then((product) => {
+    //         return fetchedCart.addProduct(product, { through: { quantity: newQuantity } });
+    //     }) //Al carrello che è stato precedentemente salvato come variabile globale della funzione, aggiunge il prodotto, specificandone
+    //     //la quantità aggiornata (in base a se prima era già presente nel carrello o meno).
+    //     .then(() => {
+    //         res.redirect("/cart");
+    //     })
+    //     .catch((err) => {
+    //         console.log("Post cart error: ", err);
+    //     });
 };
 
 exports.postCartDeleteProduct = (req, res, next) => {
