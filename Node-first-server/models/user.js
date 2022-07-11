@@ -1,7 +1,5 @@
-const { get } = require("../routes/admin");
-
-const getDb = require("../util/database").getDb;
-const ObjectId = require("mongodb").ObjectId;
+const getDb = require('../util/database').getDb;
+const ObjectId = require('mongodb').ObjectId;
 
 class User {
     constructor(username, email, cart, id) {
@@ -12,7 +10,7 @@ class User {
     }
     save() {
         const db = getDb();
-        return db.collection("users").insertOne(this);
+        return db.collection('users').insertOne(this);
     }
     addToCart(product) {
         const cartProductIndex = this.cart.items.findIndex((cp) => {
@@ -28,18 +26,18 @@ class User {
         }
         const updatedCart = { items: updatedCartItems };
         const db = getDb();
-        return db.collection("users").updateOne({ _id: new ObjectId(this._id) }, { $set: { cart: updatedCart } });
+        return db.collection('users').updateOne({ _id: new ObjectId(this._id) }, { $set: { cart: updatedCart } });
     }
     static findById(userId) {
         const db = getDb();
         return db
-            .collection("users")
+            .collection('users')
             .findOne({ _id: new ObjectId(userId) })
             .then((user) => {
                 return user;
             })
             .catch((err) => {
-                console.log("Error returning a findById user: ", err);
+                console.log('Error returning a findById user: ', err);
             });
     }
     getCart() {
@@ -49,7 +47,7 @@ class User {
         });
         return (
             db
-                .collection("products")
+                .collection('products')
                 .find({ _id: { $in: productIds } }) //questo ci permette di reperire tutti quei documenti
                 //che posseggnono gli id all'interno di productIds.
                 .toArray()
@@ -64,7 +62,7 @@ class User {
                     });
                 })
                 .catch((err) => {
-                    console.log("Error while retrieving the cart: ", err);
+                    console.log('Error while retrieving the cart: ', err);
                 })
         );
     }

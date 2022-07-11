@@ -3,7 +3,7 @@
 //non è un file disponibile a livello
 //globale.
 
-const express = require("express"); //importiamo express
+const express = require('express'); //importiamo express
 //const expressHbs = require("express-handlebars");
 
 //app.engine("handlebars",expressHbs({
@@ -14,17 +14,18 @@ const express = require("express"); //importiamo express
 //app.set('view engine', 'pug');//Possiamo importare direttamente così
 //solo perchè pug è ottimizzato per express.
 
-const path = require("path");
-const adminRoutes = require("./routes/admin");
-const shopRoutes = require("./routes/shop");
-const bodyParser = require("body-parser");
-const errorController = require("./controllers/error");
+const path = require('path');
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
+const bodyParser = require('body-parser');
+const errorController = require('./controllers/error');
 
-const mongoConnect = require("./util/database").mongoConnect;
-const User = require("./models/user");
+const mongoConnect = require('./util/database').mongoConnect;
+const User = require('./models/user');
 
 // Ora usiamo mongoDB quindi non usiamo più nessun derivato di SQL.
-// const sequelize = require("./util/database"); //Ora questa sarà la pool che potremmo utilizzare per effettuare le nostre query (sequelize prima si chiamava "db")
+// const sequelize = require("./util/database"); //Ora questa sarà la pool
+// che potremmo utilizzare per effettuare le nostre query (sequelize prima si chiamava "db")
 // const Product = require("./models/products");
 // const User = require("./models/user");
 // const Cart = require("./models/cart");
@@ -44,13 +45,13 @@ const User = require("./models/user");
 const app = express(); //In questo modo inizializziamo un oggetto per fare si che
 //express riesca a gestire per noi un bel po' di cose
 //dietro le quinte.
-app.set("view engine", "ejs");
-app.set("views", "views"); //In questo modo con il primo parametro specifichiamo
+app.set('view engine', 'ejs');
+app.set('views', 'views'); //In questo modo con il primo parametro specifichiamo
 //che vogliamo dire dove sono presenti le nostre
 //views (specifichiamo cosa deve fare la funzione),
 //mentre con il secondo, diciamo a che cartella
 //si possono trovare
-app.use(express.static(path.join(__dirname, "public"))); //In questo modo qualsiasi richiesta di file (quindi elementi statici)
+app.use(express.static(path.join(__dirname, 'public'))); //In questo modo qualsiasi richiesta di file (quindi elementi statici)
 //viene inoltrata all'interno di path/public (per questo in shop.html, non
 //indirizziamo a public/css/main.css, ma solo a css/main.css)
 
@@ -58,13 +59,13 @@ app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body 
 //dovevamo fare manualmente.
 
 app.use((req, res, next) => {
-    User.findById("62c92c1c7b2567af95cc7a0a")
+    User.findById('62c92c1c7b2567af95cc7a0a')
         .then((user) => {
             req.user = new User(user.name, user.email, user.cart, user._id);
             next();
         })
         .catch((err) => {
-            console.log("Aggiunzione utente di default a richiesta (ERRORE): ", err);
+            console.log('Aggiunzione utente di default a richiesta (ERRORE): ', err);
         });
     // User.findByPk(1)
     //     .then((user) => {
@@ -148,14 +149,14 @@ app.use((req, res, next) => {
 //dell'indirizzo passato (in questo caso si usa
 //il default, ovvero localhost).
 
-app.use("/admin", adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+app.use('/admin', adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
 //dato all'interno del file admin come middleware.
 //Con lo /admin, andiamo a denotare nell'url la path di appartenenza.
 app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
 //dato all'interno del file shop come middleware.
 
 //PAGINA DI DEFAULT
-app.use("/", errorController.get404);
+app.use('/', errorController.get404);
 
 // Visto che ora utilizzeremo mongoDB, tutto ciò che riguarda il server in phpMyAdmin, non serve più.
 // Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });

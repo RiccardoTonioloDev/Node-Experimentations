@@ -1,20 +1,22 @@
-const mongoDB = require("mongodb");
+const mongoDB = require('mongodb');
 const MongoClient = mongoDB.MongoClient; //Oggetto che utilizzeremo per connetterci
 require('dotenv').config();
 
 let _db;
 
 const mongoConnect = (callback) => {
-    MongoClient.connect("mongodb+srv://"+process.env.USERNAME+":"+process.env.PASSWORD+"@cluster0.wpbzy.mongodb.net/shop?retryWrites=true&w=majority")
+    MongoClient.connect(
+        'mongodb+srv://' + process.env.USERNAME + ':' + process.env.PASSWORD + '@cluster0.wpbzy.mongodb.net/shop?retryWrites=true&w=majority'
+    )
         //                                                                                          ^^^^^^ questo shop l'ho aggiunto io
         // Praticamente se il db con quel nome non esiste, lo crea e poi ci accede, altrimenti ci accede e basta.
         .then((client) => {
-            console.log("MongoDB connected!");
+            console.log('MongoDB connected!');
             _db = client.db();
             callback();
         })
         .catch((err) => {
-            console.log("Error connection mongoDB: ", err);
+            console.log('Error connection mongoDB: ', err);
             throw err;
         });
 };
@@ -23,7 +25,7 @@ const getDb = () => {
     if (_db) {
         return _db;
     }
-    throw "No database found!";
+    console.log('Database not found!');
 };
 
 exports.mongoConnect = mongoConnect;
