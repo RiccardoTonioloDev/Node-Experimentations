@@ -1,4 +1,4 @@
-const Product = require('../models/products');
+const Product = require("../models/products");
 
 exports.getProducts = (req, res, next) => {
     //Questo è il secondo middleware
@@ -35,16 +35,16 @@ exports.getProducts = (req, res, next) => {
     //     });
     Product.fetchAll()
         .then((products) => {
-            res.render('shop/product-list', {
+            res.render("shop/product-list", {
                 prods: products,
-                pageTitle: 'Products',
-                path: '/products',
+                pageTitle: "Products",
+                path: "/products",
             }); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
             //dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
             //Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
         })
         .catch((err) => {
-            console.log('Get index error: ', err);
+            console.log("Get index error: ", err);
         });
 };
 
@@ -54,16 +54,16 @@ exports.getProduct = (req, res, next) => {
     //passiamo in una apposita variabile.
     Product.findById(prodId)
         .then((product) => {
-            res.render('shop/product-detail', {
+            res.render("shop/product-detail", {
                 product: product,
                 pageTitle: product.title,
-                path: '/products',
+                path: "/products",
             }); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
             //dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
             //Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
         })
         .catch((err) => {
-            console.log('Get product by id error: ', err);
+            console.log("Get product by id error: ", err);
         });
     // Product.findById(prodId)
     //     .then(([product, fieldData]) => {
@@ -96,16 +96,16 @@ exports.getIndex = (req, res, next) => {
     // Product.fetchAll() Non usiamo più sql puro, quindi questa riga sarà sostituita in: .findAll(), tuttavia stiamo usando mongoDb.
     Product.fetchAll()
         .then((products) => {
-            res.render('shop/index', {
+            res.render("shop/index", {
                 prods: products,
-                pageTitle: 'My Shop',
-                path: '/',
+                pageTitle: "My Shop",
+                path: "/",
             }); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
             //dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
             //Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
         })
         .catch((err) => {
-            console.log('Get index error: ', err);
+            console.log("Get index error: ", err);
         });
 };
 
@@ -113,14 +113,14 @@ exports.getCart = (req, res, next) => {
     req.user
         .getCart()
         .then((products) => {
-            res.render('shop/cart', {
-                path: '/cart',
-                pageTitle: 'Your Cart',
+            res.render("shop/cart", {
+                path: "/cart",
+                pageTitle: "Your Cart",
                 products: products,
             });
         })
         .catch((err) => {
-            console.log('Error while getting the cart: ', err);
+            console.log("Error while getting the cart: ", err);
         });
     // Cart.getCart((cart) => {
     //     Product.fetchAll((products) => {
@@ -164,10 +164,10 @@ exports.postCart = (req, res, next) => {
             return req.user.addToCart(product);
         })
         .then((result) => {
-            res.redirect('/cart');
+            res.redirect("/cart");
         })
         .catch((err) => {
-            console.log('Error adding to cart: ', err);
+            console.log("Error adding to cart: ", err);
         });
     //Ora usiamo mongoDB
     // let fetchedCart;
@@ -212,26 +212,27 @@ exports.postCart = (req, res, next) => {
 exports.postCartDeleteProduct = (req, res, next) => {
     const prodId = req.body.productId;
     req.user
-        .getCart()
-        .then((cart) => {
-            return cart.getProducts({ where: { id: prodId } });
-        })
-        .then((products) => {
-            const product = products[0];
-            return product.cartItem.destroy();
-        })
+        .deleteItemFromCart(prodId)
+        // .getCart()
+        // .then((cart) => {
+        //     return cart.getProducts({ where: { id: prodId } });
+        // })
+        // .then((products) => {
+        //     const product = products[0];
+        //     return product.cartItem.destroy();
+        // })
         .then((result) => {
-            res.redirect('/cart');
+            res.redirect("/cart");
         })
         .catch((err) => {
-            console.log('Error deleting products: ', console.log(err));
+            console.log("Error deleting products: ", console.log(err));
         });
 };
 
 exports.getCheckout = (req, res, next) => {
-    res.render('shop/checkout', {
-        path: '/checkout',
-        pageTitle: 'Checkout',
+    res.render("shop/checkout", {
+        path: "/checkout",
+        pageTitle: "Checkout",
     });
 };
 
@@ -239,45 +240,49 @@ exports.postOrder = (req, res, next) => {
     let tmpProducts;
     let fetchedCart;
     req.user
-        .getCart()
-        .then((cart) => {
-            fetchedCart = cart;
-            return cart.getProducts();
-        })
-        .then((products) => {
-            tmpProducts = products;
-            return req.user.createOrder();
-        })
-        .then((order) => {
-            return order.addProducts(
-                tmpProducts.map((product) => {
-                    product.orderItem = { quantity: product.cartItem.quantity };
-                    return product;
-                })
-            );
-        })
+        .addOrder()
+        // Ora usiamo mongoDB
+        // .getCart()
+        // .then((cart) => {
+        //     fetchedCart = cart;
+        //     return cart.getProducts();
+        // })
+        // .then((products) => {
+        //     tmpProducts = products;
+        //     return req.user.createOrder();
+        // })
+        // .then((order) => {
+        //     return order.addProducts(
+        //         tmpProducts.map((product) => {
+        //             product.orderItem = { quantity: product.cartItem.quantity };
+        //             return product;
+        //         })
+        //     );
+        // })
+        // .then((result) => {
+        //     return fetchedCart.setProducts(null); //Serve per cancellare tutti gli elementi
+        // })
         .then((result) => {
-            return fetchedCart.setProducts(null); //Serve per cancellare tutti gli elementi
-        })
-        .then((result) => {
-            return res.redirect('/orders');
+            return res.redirect("/orders");
         })
         .catch((err) => {
-            console.log('Error on posting an order: ', err);
+            console.log("Error on posting an order: ", err);
         });
 };
 
 exports.getOrders = (req, res, next) => {
     req.user
-        .getOrders({ include: ['products'] }) //Aggiunge un campo per ogni ordine, dove posiziona i relativi prodotti.
+        .getOrders()
+        // Ora usiamo mongoDb
+        // .getOrders({ include: ["products"] }) //Aggiunge un campo per ogni ordine, dove posiziona i relativi prodotti.
         .then((orders) => {
-            res.render('shop/orders', {
-                path: '/orders',
-                pageTitle: 'Your Orders',
+            res.render("shop/orders", {
+                path: "/orders",
+                pageTitle: "Your Orders",
                 orders: orders,
             });
         })
         .catch((err) => {
-            console.log('Error getting orders: ', err);
+            console.log("Error getting orders: ", err);
         });
 };
