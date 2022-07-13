@@ -23,7 +23,7 @@ const bodyParser = require("body-parser");
 const errorController = require("./controllers/error");
 
 // const mongoConnect = require("./util/database").mongoConnect; //Cancellato in quanto ora usiamo mongoose
-// const User = require("./models/user");
+const User = require("./models/user");
 
 // Ora usiamo mongoDB quindi non usiamo più nessun derivato di SQL.
 // const sequelize = require("./util/database"); //Ora questa sarà la pool
@@ -60,26 +60,26 @@ app.use(express.static(path.join(__dirname, "public"))); //In questo modo qualsi
 app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body parsing, che prima noi
 //dovevamo fare manualmente.
 
-// app.use((req, res, next) => {
-//     User.findById("62c92c1c7b2567af95cc7a0a")
-//         .then((user) => {
-//             req.user = new User(user.name, user.email, user.cart, user._id);
-//             next();
-//         })
-//         .catch((err) => {
-//             console.log("Aggiunzione utente di default a richiesta (ERRORE): ", err);
-//         });
-//     // User.findByPk(1)
-//     //     .then((user) => {
-//     //         req.user = user; //Sto aggiungendo un campo alla richiesta
-//     //         //In questo modo successivi middleware, lo avranno a disposizione,
-//     //         //Per gestire lo shop, nel contesto dell'utente trattato.
-//     //         next();
-//     //     })
-//     //     .catch((err) => {
-//     //         console.log("Errore caricamento utente: ", err);
-//     //     });
-// });
+app.use((req, res, next) => {
+    User.findById("62ceddab0afbe1c5aa424966")
+        .then((user) => {
+            req.user = user;
+            next();
+        })
+        .catch((err) => {
+            console.log("Aggiunzione utente di default a richiesta (ERRORE): ", err);
+        });
+    // User.findByPk(1)
+    //     .then((user) => {
+    //         req.user = user; //Sto aggiungendo un campo alla richiesta
+    //         //In questo modo successivi middleware, lo avranno a disposizione,
+    //         //Per gestire lo shop, nel contesto dell'utente trattato.
+    //         next();
+    //     })
+    //     .catch((err) => {
+    //         console.log("Errore caricamento utente: ", err);
+    //     });
+});
 
 //const { removeListener } = require('process');
 //Per importare moduli non globali però,
@@ -214,6 +214,18 @@ app.use("/", errorController.get404);
 mongoose
     .connect("mongodb+srv://" + process.env.USERNAME + ":" + process.env.PASSWORD + "@cluster0.wpbzy.mongodb.net/shop?retryWrites=true&w=majority")
     .then((result) => {
+        User.findOne().then((user) => {
+            if (!user) {
+                const user = new User({
+                    name: "Max",
+                    email: "max@test.com",
+                    cart: {
+                        items: [],
+                    },
+                });
+                user.save();
+            }
+        });
         app.listen(3000);
     })
     .catch((err) => {
