@@ -3,7 +3,8 @@
 //non è un file disponibile a livello
 //globale.
 
-const express = require('express'); //importiamo express
+const express = require("express"); //importiamo express
+require("dotenv").config();
 //const expressHbs = require("express-handlebars");
 
 //app.engine("handlebars",expressHbs({
@@ -14,14 +15,15 @@ const express = require('express'); //importiamo express
 //app.set('view engine', 'pug');//Possiamo importare direttamente così
 //solo perchè pug è ottimizzato per express.
 
-const path = require('path');
-const adminRoutes = require('./routes/admin');
-const shopRoutes = require('./routes/shop');
-const bodyParser = require('body-parser');
-const errorController = require('./controllers/error');
+const path = require("path");
+const mongoose = require("mongoose");
+const adminRoutes = require("./routes/admin");
+const shopRoutes = require("./routes/shop");
+const bodyParser = require("body-parser");
+const errorController = require("./controllers/error");
 
-const mongoConnect = require('./util/database').mongoConnect;
-const User = require('./models/user');
+// const mongoConnect = require("./util/database").mongoConnect; //Cancellato in quanto ora usiamo mongoose
+// const User = require("./models/user");
 
 // Ora usiamo mongoDB quindi non usiamo più nessun derivato di SQL.
 // const sequelize = require("./util/database"); //Ora questa sarà la pool
@@ -45,39 +47,39 @@ const User = require('./models/user');
 const app = express(); //In questo modo inizializziamo un oggetto per fare si che
 //express riesca a gestire per noi un bel po' di cose
 //dietro le quinte.
-app.set('view engine', 'ejs');
-app.set('views', 'views'); //In questo modo con il primo parametro specifichiamo
+app.set("view engine", "ejs");
+app.set("views", "views"); //In questo modo con il primo parametro specifichiamo
 //che vogliamo dire dove sono presenti le nostre
 //views (specifichiamo cosa deve fare la funzione),
 //mentre con il secondo, diciamo a che cartella
 //si possono trovare
-app.use(express.static(path.join(__dirname, 'public'))); //In questo modo qualsiasi richiesta di file (quindi elementi statici)
+app.use(express.static(path.join(__dirname, "public"))); //In questo modo qualsiasi richiesta di file (quindi elementi statici)
 //viene inoltrata all'interno di path/public (per questo in shop.html, non
 //indirizziamo a public/css/main.css, ma solo a css/main.css)
 
 app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body parsing, che prima noi
 //dovevamo fare manualmente.
 
-app.use((req, res, next) => {
-    User.findById('62c92c1c7b2567af95cc7a0a')
-        .then((user) => {
-            req.user = new User(user.name, user.email, user.cart, user._id);
-            next();
-        })
-        .catch((err) => {
-            console.log('Aggiunzione utente di default a richiesta (ERRORE): ', err);
-        });
-    // User.findByPk(1)
-    //     .then((user) => {
-    //         req.user = user; //Sto aggiungendo un campo alla richiesta
-    //         //In questo modo successivi middleware, lo avranno a disposizione,
-    //         //Per gestire lo shop, nel contesto dell'utente trattato.
-    //         next();
-    //     })
-    //     .catch((err) => {
-    //         console.log("Errore caricamento utente: ", err);
-    //     });
-});
+// app.use((req, res, next) => {
+//     User.findById("62c92c1c7b2567af95cc7a0a")
+//         .then((user) => {
+//             req.user = new User(user.name, user.email, user.cart, user._id);
+//             next();
+//         })
+//         .catch((err) => {
+//             console.log("Aggiunzione utente di default a richiesta (ERRORE): ", err);
+//         });
+//     // User.findByPk(1)
+//     //     .then((user) => {
+//     //         req.user = user; //Sto aggiungendo un campo alla richiesta
+//     //         //In questo modo successivi middleware, lo avranno a disposizione,
+//     //         //Per gestire lo shop, nel contesto dell'utente trattato.
+//     //         next();
+//     //     })
+//     //     .catch((err) => {
+//     //         console.log("Errore caricamento utente: ", err);
+//     //     });
+// });
 
 //const { removeListener } = require('process');
 //Per importare moduli non globali però,
@@ -149,14 +151,14 @@ app.use((req, res, next) => {
 //dell'indirizzo passato (in questo caso si usa
 //il default, ovvero localhost).
 
-app.use('/admin', adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
+app.use("/admin", adminRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
 //dato all'interno del file admin come middleware.
 //Con lo /admin, andiamo a denotare nell'url la path di appartenenza.
 app.use(shopRoutes); //In questo modo considerà in modo automatico le routes che gli abbiamo
 //dato all'interno del file shop come middleware.
 
 //PAGINA DI DEFAULT
-app.use('/', errorController.get404);
+app.use("/", errorController.get404);
 
 // Visto che ora utilizzeremo mongoDB, tutto ciò che riguarda il server in phpMyAdmin, non serve più.
 // Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
@@ -205,6 +207,15 @@ app.use('/', errorController.get404);
 //         console.log("Errore sync: ", err);
 //     }); //Per ogni modello che trova creato all'interno del server, crea una tabella corrispondente.
 
-mongoConnect(() => {
-    app.listen(3000);
-});
+// Ora la connessione la facciamo direttamente con mongoose
+// mongoConnect(() => {
+//     app.listen(3000);
+// });
+mongoose
+    .connect("mongodb+srv://" + process.env.USERNAME + ":" + process.env.PASSWORD + "@cluster0.wpbzy.mongodb.net/shop?retryWrites=true&w=majority")
+    .then((result) => {
+        app.listen(3000);
+    })
+    .catch((err) => {
+        console.log("Error connecting to the database or to the server: ", err);
+    });

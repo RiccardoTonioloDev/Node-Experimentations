@@ -33,7 +33,11 @@ exports.getProducts = (req, res, next) => {
     //     .catch((err) => {
     //         console.log("Get index error: ", err);
     //     });
-    Product.fetchAll()
+    Product
+        //.fetchAll() ora usiamo mongoose
+        .find() //Il metodo find non restituisce un puntatore, bensì tutti gli elementi
+        //Con grandi quantità di dati è meglio utilizzare il cursore, o magari limitare il
+        //reperimento tramite find.
         .then((products) => {
             res.render("shop/product-list", {
                 prods: products,
@@ -52,8 +56,10 @@ exports.getProduct = (req, res, next) => {
     const prodId = req.params.productId; //Prendiamo ciò che abbiamo identificato come productId
     //nel nostro URL, (che abbiamo quindi identificato essere un parametro della richiesta), e lo
     //passiamo in una apposita variabile.
-    Product.findById(prodId)
+    Product.findById(prodId) //Mongoose possiede di per se un find by id
+        //E riesce anche a trasformare prodId stringhe in prodId oggetti.
         .then((product) => {
+            console.log(prodId, product._id, product);
             res.render("shop/product-detail", {
                 product: product,
                 pageTitle: product.title,
@@ -94,7 +100,9 @@ exports.getProduct = (req, res, next) => {
 
 exports.getIndex = (req, res, next) => {
     // Product.fetchAll() Non usiamo più sql puro, quindi questa riga sarà sostituita in: .findAll(), tuttavia stiamo usando mongoDb.
-    Product.fetchAll()
+    Product
+        //.fetchAll() ora usiamo mongoose
+        .find()
         .then((products) => {
             res.render("shop/index", {
                 prods: products,

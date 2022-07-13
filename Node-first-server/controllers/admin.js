@@ -1,4 +1,4 @@
-const Product = require('../models/products');
+const Product = require("../models/products");
 
 exports.getAddProduct = (req, res, next) => {
     //La richiesta per questo path, viene gestita
@@ -6,9 +6,9 @@ exports.getAddProduct = (req, res, next) => {
     //basso verso l'alto. (a meno che non si usi next() [Non
     //si deve fare dopo aver già fatto send]).
     //res.sendFile(path.join(rootDir, "views","add-product.html"));
-    res.render('admin/edit-product', {
-        pageTitle: 'Add product',
-        path: '/admin/add-product',
+    res.render("admin/edit-product", {
+        pageTitle: "Add product",
+        path: "/admin/add-product",
         editing: false,
     });
 }; //abbiamo aggiunto nel form /admin/ prima di product, questo perchè fuori, nell'app, è
@@ -21,16 +21,19 @@ exports.postAddProduct = (req, res, next) => {
     const imageUrl = req.body.imageUrl;
     const description = req.body.description;
     const price = req.body.price;
-    console.log('USER RETRIEVED: ', req.user);
-    const product = new Product(title, price, description, imageUrl, null, req.user._id);
+    const product = new Product({ title: title, imageUrl: imageUrl, description: description, price: price });
+    // In mongoose le cose si fanno in modo leggermente diverso
+    // console.log('USER RETRIEVED: ', req.user);
+    // const product = new Product(title, price, description, imageUrl, null, req.user._id);
     product
-        .save()
+        .save() //Ora che stiamo utilizzando mongoose, il metodo di salvataggio è direttamente fornito da
+        //mongoose, e non da noi (come avevamo semplicemente fatto per mongoDB vanilla).
         .then((result) => {
-            console.log('Product created!');
-            res.redirect('/admin/products');
+            console.log("Product created!");
+            res.redirect("/admin/products");
         })
         .catch((err) => {
-            console.log('Error while posting a new product: ', err);
+            console.log("Error while posting a new product: ", err);
         });
 
     //Commentato in quanto ora facciamo tutto in mongoDB
@@ -90,14 +93,14 @@ exports.postAddProduct = (req, res, next) => {
 exports.getProducts = (req, res, next) => {
     Product.fetchAll()
         .then((products) => {
-            res.render('admin/products', {
+            res.render("admin/products", {
                 prods: products,
-                pageTitle: 'Admin Products',
-                path: '/admin/products',
+                pageTitle: "Admin Products",
+                path: "/admin/products",
             });
         })
         .catch((err) => {
-            console.log('Admin getProducts error: ', err);
+            console.log("Admin getProducts error: ", err);
         });
     //Ora facciamo tutto in mongoDB
     // req.user
@@ -125,24 +128,24 @@ exports.getEditProduct = (req, res, next) => {
     //res.sendFile(path.join(rootDir, "views","add-product.html"));
     const editMode = req.query.edit;
     if (!editMode) {
-        return res.redirect('/');
+        return res.redirect("/");
     }
     const prodId = req.params.productId; //In questo modo si prende l'Id dall'URL
     Product.findById(prodId) //Così prendi i prodotti relativi all'utente.
         //Product.findByPk(prodId)
         .then((product) => {
             if (!product) {
-                return res.redirect('/');
+                return res.redirect("/");
             }
-            res.render('admin/edit-product', {
-                pageTitle: 'Edit product',
-                path: '/admin/edit-product',
+            res.render("admin/edit-product", {
+                pageTitle: "Edit product",
+                path: "/admin/edit-product",
                 editing: editMode,
                 product: product,
             });
         })
         .catch((err) => {
-            console.log('getEditProduct admin error: ', err);
+            console.log("getEditProduct admin error: ", err);
         });
     // req.user
     //     .getProducts({ where: { id: prodId } }) //Così prendi i prodotti relativi all'utente.
@@ -179,11 +182,11 @@ exports.postEditProduct = (req, res, next) => {
     product
         .save()
         .then((result) => {
-            console.log('Updated product!');
-            res.redirect('/admin/products');
+            console.log("Updated product!");
+            res.redirect("/admin/products");
         })
         .catch((err) => {
-            console.log('PostEditProduct error admin: ', err); // Questo catcher, prenderà gli errori eventuali, da entrambi i then.
+            console.log("PostEditProduct error admin: ", err); // Questo catcher, prenderà gli errori eventuali, da entrambi i then.
         });
     // Ora usiamo mongoDb
     // Product.findByPk(id)
@@ -215,11 +218,11 @@ exports.postDeleteProduct = (req, res, next) => {
 
     Product.deleteById(id)
         .then(() => {
-            console.log('DESTORYED PRODUCT');
-            res.redirect('/admin/products');
+            console.log("DESTORYED PRODUCT");
+            res.redirect("/admin/products");
         })
         .catch((err) => {
-            console.log('Error in effective deletion of a product: ', err);
+            console.log("Error in effective deletion of a product: ", err);
         });
     // Product.deleteById(id); ora utilizzo sequelize
     // Product.findByPk(id)
