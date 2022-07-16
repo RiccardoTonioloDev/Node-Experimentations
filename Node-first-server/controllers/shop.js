@@ -44,6 +44,7 @@ exports.getProducts = (req, res, next) => {
 				prods: products,
 				pageTitle: 'Products',
 				path: '/products',
+				isAuthenticated: req.session.isLoggedIn,
 			}); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
 			//dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
@@ -64,6 +65,7 @@ exports.getProduct = (req, res, next) => {
 				product: product,
 				pageTitle: product.title,
 				path: '/products',
+				isAuthenticated: req.session.isLoggedIn,
 			}); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
 			//dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
@@ -108,6 +110,7 @@ exports.getIndex = (req, res, next) => {
 				prods: products,
 				pageTitle: 'My Shop',
 				path: '/',
+				isAuthenticated: req.session.isLoggedIn,
 			}); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
 			//dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
@@ -118,7 +121,7 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-	req.user
+	req.session.user
 		.populate('cart.items.productId')
 		// .getCart() ora usiamo mongoose, e ha più senso fare così
 		.then((user) => {
@@ -127,6 +130,7 @@ exports.getCart = (req, res, next) => {
 				path: '/cart',
 				pageTitle: 'Your Cart',
 				products: products,
+				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
@@ -173,7 +177,7 @@ exports.postCart = (req, res, next) => {
 
 	Product.findById(prodId)
 		.then((product) => {
-			return req.user.addToCart(product);
+			return req.session.user.addToCart(product);
 		})
 		.then((result) => {
 			res.redirect('/cart');
@@ -223,7 +227,7 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
 	const prodId = req.body.productId;
-	req.user
+	req.session.user
 		.removeFromCart(prodId)
 		// .deleteItemFromCart(prodId)
 		// .getCart()
@@ -246,11 +250,12 @@ exports.getCheckout = (req, res, next) => {
 	res.render('shop/checkout', {
 		path: '/checkout',
 		pageTitle: 'Checkout',
+		isAuthenticated: req.session.isLoggedIn,
 	});
 };
 
 exports.postOrder = (req, res, next) => {
-	req.user
+	req.session.user
 		.populate('cart.items.productId')
 		.then((user) => {
 			const products = user.cart.items.map((product) => {
@@ -263,8 +268,8 @@ exports.postOrder = (req, res, next) => {
 			});
 			const order = new Order({
 				user: {
-					name: req.user.name,
-					userId: req.user._id,
+					name: req.session.user.name,
+					userId: req.session.user._id,
 				},
 				products: products,
 			});
@@ -295,7 +300,7 @@ exports.postOrder = (req, res, next) => {
 		//     return fetchedCart.setProducts(null); //Serve per cancellare tutti gli elementi
 		// })
 		.then((result) => {
-			return req.user.clearCart();
+			return req.session.user.clearCart();
 		})
 		.then((result) => {
 			return res.redirect('/orders');
@@ -306,7 +311,7 @@ exports.postOrder = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-	Order.find({ 'user.userId': req.user._id })
+	Order.find({ 'user.userId': req.session.user._id })
 		//Ora usiamo mongoose
 		// req.user
 		// 	.getOrders()
@@ -317,6 +322,7 @@ exports.getOrders = (req, res, next) => {
 				path: '/orders',
 				pageTitle: 'Your Orders',
 				orders: orders,
+				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {

@@ -11,6 +11,7 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add product',
 		path: '/admin/add-product',
 		editing: false,
+		isAuthenticated: req.session.isLoggedIn,
 	});
 }; //abbiamo aggiunto nel form /admin/ prima di product, questo perchè fuori, nell'app, è
 //dichiarato che tutte le routes in questa page appartengono alla path admin.
@@ -27,7 +28,8 @@ exports.postAddProduct = (req, res, next) => {
 		imageUrl: imageUrl,
 		description: description,
 		price: price,
-		userId: req.user /* Mongoose ci permette di passare l'id anche in questo modo */,
+		userId: req.session
+			.user /* Mongoose ci permette di passare l'id anche in questo modo */,
 	});
 	// In mongoose le cose si fanno in modo leggermente diverso
 	// console.log('USER RETRIEVED: ', req.user);
@@ -110,6 +112,7 @@ exports.getProducts = (req, res, next) => {
 				prods: products,
 				pageTitle: 'Admin Products',
 				path: '/admin/products',
+				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
@@ -155,6 +158,7 @@ exports.getEditProduct = (req, res, next) => {
 				path: '/admin/edit-product',
 				editing: editMode,
 				product: product,
+				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
