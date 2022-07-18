@@ -1,7 +1,11 @@
-const products = require('../models/products');
 const Product = require('../models/products');
 
 exports.getAddProduct = (req, res, next) => {
+	//È un possibile modo di proteggere le routes, ma non è scalabile
+	// if (!req.session.isLoggedIn) {
+	// 	return res.redirect('/login');
+	// }
+
 	//La richiesta per questo path, viene gestita
 	//solo da questo, perchè la priorità è dal
 	//basso verso l'alto. (a meno che non si usi next() [Non
