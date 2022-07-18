@@ -121,7 +121,7 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-	req.session.user
+	req.user
 		.populate('cart.items.productId')
 		// .getCart() ora usiamo mongoose, e ha più senso fare così
 		.then((user) => {
@@ -177,7 +177,7 @@ exports.postCart = (req, res, next) => {
 
 	Product.findById(prodId)
 		.then((product) => {
-			return req.session.user.addToCart(product);
+			return req.user.addToCart(product);
 		})
 		.then((result) => {
 			res.redirect('/cart');
@@ -227,7 +227,7 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
 	const prodId = req.body.productId;
-	req.session.user
+	req.user
 		.removeFromCart(prodId)
 		// .deleteItemFromCart(prodId)
 		// .getCart()
@@ -255,7 +255,7 @@ exports.getCheckout = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-	req.session.user
+	req.user
 		.populate('cart.items.productId')
 		.then((user) => {
 			const products = user.cart.items.map((product) => {
@@ -268,8 +268,8 @@ exports.postOrder = (req, res, next) => {
 			});
 			const order = new Order({
 				user: {
-					name: req.session.user.name,
-					userId: req.session.user._id,
+					name: req.user.name,
+					userId: req.user._id,
 				},
 				products: products,
 			});
@@ -300,7 +300,7 @@ exports.postOrder = (req, res, next) => {
 		//     return fetchedCart.setProducts(null); //Serve per cancellare tutti gli elementi
 		// })
 		.then((result) => {
-			return req.session.user.clearCart();
+			return req.user.clearCart();
 		})
 		.then((result) => {
 			return res.redirect('/orders');
@@ -311,7 +311,7 @@ exports.postOrder = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-	Order.find({ 'user.userId': req.session.user._id })
+	Order.find({ 'user.userId': req.user._id })
 		//Ora usiamo mongoose
 		// req.user
 		// 	.getOrders()

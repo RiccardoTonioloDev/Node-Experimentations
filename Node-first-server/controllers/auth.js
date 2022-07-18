@@ -14,9 +14,34 @@ exports.postLogin = (req, res, next) => {
 		.then((user) => {
 			req.session.user = user;
 			req.session.isLoggedIn = true;
-			res.redirect('/');
+			req.session.save((err) => {
+				if (err) {
+					console.log('Error while saving session to db: ', err);
+				}
+				res.redirect('/');
+			});
 		})
 		.catch((err) => {
 			console.log('Error while setting user in session: ', user);
 		});
+};
+
+exports.postLogout = (req, res, next) => {
+	req.session.destroy((err) => {
+		//Funzione che distrugge la sessione attuale
+		if (err) {
+			console.log('Error while destroying session: ', err);
+		}
+		res.redirect('/'); //Callback.
+	});
+};
+
+exports.postSignup = (req, res, next) => {};
+
+exports.getSignup = (req, res, next) => {
+	res.render('auth/signup', {
+		path: '/signup',
+		pageTitle: 'signup',
+		isAuthenticated: false,
+	});
 };

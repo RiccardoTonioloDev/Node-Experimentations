@@ -28,8 +28,8 @@ exports.postAddProduct = (req, res, next) => {
 		imageUrl: imageUrl,
 		description: description,
 		price: price,
-		userId: req.session
-			.user /* Mongoose ci permette di passare l'id anche in questo modo */,
+		userId: req.user,
+		/* Mongoose ci permette di passare l'id anche in questo modo */
 	});
 	// In mongoose le cose si fanno in modo leggermente diverso
 	// console.log('USER RETRIEVED: ', req.user);

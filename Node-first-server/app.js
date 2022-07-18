@@ -88,6 +88,20 @@ app.use(
 	})
 );
 
+app.use((req, res, next) => {
+	if (!req.session.user) {
+		return next();
+	}
+	User.findById(req.session.user._id)
+		.then((user) => {
+			req.user = user;
+			next();
+		})
+		.catch((err) => {
+			console.log('Error while loading user from session: ', err);
+		});
+});
+
 //Ora usiamo le sessioni, quindi questo middleware non ci serve più.
 // app.use((req, res, next) => {
 // 	User.findById('62ceddab0afbe1c5aa424966')
