@@ -15,7 +15,6 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add product',
 		path: '/admin/add-product',
 		editing: false,
-		isAuthenticated: req.session.isLoggedIn,
 	});
 }; //abbiamo aggiunto nel form /admin/ prima di product, questo perchè fuori, nell'app, è
 //dichiarato che tutte le routes in questa page appartengono alla path admin.
@@ -116,7 +115,6 @@ exports.getProducts = (req, res, next) => {
 				prods: products,
 				pageTitle: 'Admin Products',
 				path: '/admin/products',
-				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
@@ -162,7 +160,6 @@ exports.getEditProduct = (req, res, next) => {
 				path: '/admin/edit-product',
 				editing: editMode,
 				product: product,
-				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {

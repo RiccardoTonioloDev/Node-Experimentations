@@ -32,11 +32,14 @@ const errorController = require('./controllers/error');
 const session = require('express-session'); //In questo modo possiamo utilizzare le sessioni.
 const MongoDBStore = require('connect-mongodb-session')(session); //Serve per usare mongoDB come supporto per le sessioni.
 //Gli passiamo la sessione creata nella riga sopra per poterla utilizzare.
+const csrf = require('csurf'); //Per protezione da attacchi di tipo CSRF
 
 const store = new MongoDBStore({
 	uri: MONGODB_URI, //URI per la connessione al database.
 	collection: 'sessions', //collezione dove verranno messe in storage le varie sessioni.
 });
+
+const csrfProtection = csrf();
 
 // const mongoConnect = require("./util/database").mongoConnect; //Cancellato in quanto ora usiamo mongoose
 const User = require('./models/user');
@@ -88,6 +91,8 @@ app.use(
 	})
 );
 
+app.use(csrfProtection); //Creiamo un middleware per abilitare la protezione.
+
 app.use((req, res, next) => {
 	if (!req.session.user) {
 		return next();
@@ -100,6 +105,14 @@ app.use((req, res, next) => {
 		.catch((err) => {
 			console.log('Error while loading user from session: ', err);
 		});
+});
+
+app.use((req, res, next) => {
+	//In questo modo per ogni richiesta, ogni view avrà queste due variabili
+	//di default.
+	res.locals.isAuthenticated = req.session.isLoggedIn;
+	res.locals.csrfToken = req.csrfToken();
+	next();
 });
 
 //Ora usiamo le sessioni, quindi questo middleware non ci serve più.

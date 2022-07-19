@@ -44,7 +44,6 @@ exports.getProducts = (req, res, next) => {
 				prods: products,
 				pageTitle: 'Products',
 				path: '/products',
-				isAuthenticated: req.session.isLoggedIn,
 			}); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
 			//dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
@@ -65,7 +64,6 @@ exports.getProduct = (req, res, next) => {
 				product: product,
 				pageTitle: product.title,
 				path: '/products',
-				isAuthenticated: req.session.isLoggedIn,
 			}); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
 			//dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
@@ -106,11 +104,10 @@ exports.getIndex = (req, res, next) => {
 		//.fetchAll() ora usiamo mongoose
 		.find()
 		.then((products) => {
-			res.render('shop/index', {
+			return res.render('shop/index', {
 				prods: products,
 				pageTitle: 'My Shop',
 				path: '/',
-				isAuthenticated: req.session.isLoggedIn,
 			}); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
 			//dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
@@ -130,7 +127,6 @@ exports.getCart = (req, res, next) => {
 				path: '/cart',
 				pageTitle: 'Your Cart',
 				products: products,
-				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
@@ -250,7 +246,6 @@ exports.getCheckout = (req, res, next) => {
 	res.render('shop/checkout', {
 		path: '/checkout',
 		pageTitle: 'Checkout',
-		isAuthenticated: req.session.isLoggedIn,
 	});
 };
 
@@ -268,7 +263,7 @@ exports.postOrder = (req, res, next) => {
 			});
 			const order = new Order({
 				user: {
-					name: req.user.name,
+					email: req.user.email,
 					userId: req.user._id,
 				},
 				products: products,
@@ -322,7 +317,6 @@ exports.getOrders = (req, res, next) => {
 				path: '/orders',
 				pageTitle: 'Your Orders',
 				orders: orders,
-				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
