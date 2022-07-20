@@ -103,7 +103,7 @@ exports.postAddProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-	Product.find()
+	Product.find({ userId: req.user._id })
 		// .select("title price -_id") //Ci permette di selezionare solo particolari caratteristiche dei prodotti reperiti (il -_id sta a
 		//dire che l'id deve essere espressamente escluso: ALTRIMENTI è SEMPRE INCLUSO)
 		// .populate("userId", "name") //Tramite questo metodo, mongoose reperisce l'intero user e lo posiziona al posto del campo userId.
@@ -187,7 +187,6 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next) => {
 	const id = req.body.productId;
-	console.log(id);
 	const title = req.body.title;
 	const imageUrl = req.body.imageUrl;
 	const description = req.body.description;
@@ -195,16 +194,18 @@ exports.postEditProduct = (req, res, next) => {
 
 	Product.findById(id)
 		.then((product) => {
+			if (product.userId.toString() !== req.user._id.toString()) {
+				return res.redirect('/');
+			}
 			product.title = title;
 			product.imageUrl = imageUrl;
 			product.description = description;
 			product.price = price;
 
-			product.save();
-		})
-		.then((result) => {
-			console.log('Updated product!');
-			res.redirect('/admin/products');
+			return product.save().then((result) => {
+				console.log('Updated product!');
+				res.redirect('/admin/products');
+			});
 		})
 		.catch((err) => {
 			console.log('PostEditProduct error admin: ', err); // Questo catcher, prenderà gli errori eventuali, da entrambi i then.
@@ -248,7 +249,9 @@ exports.postEditProduct = (req, res, next) => {
 exports.postDeleteProduct = (req, res, next) => {
 	const id = req.body.productId;
 
-	Product.findByIdAndRemove(id)
+	Product //findByIdAndRemove(id) per verificare che sia il vero proprietario dell'oggetto a effettuare l'operazione di rimozione,
+		//utilizziamo questo tipo di comando.
+		.deleteOne({ _id: id, userId: req.user._id })
 		//.deleteById(id) ora usiamo mongoose
 		.then(() => {
 			console.log('DESTORYED PRODUCT');
