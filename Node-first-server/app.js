@@ -33,6 +33,7 @@ const session = require('express-session'); //In questo modo possiamo utilizzare
 const MongoDBStore = require('connect-mongodb-session')(session); //Serve per usare mongoDB come supporto per le sessioni.
 //Gli passiamo la sessione creata nella riga sopra per poterla utilizzare.
 const csrf = require('csurf'); //Per protezione da attacchi di tipo CSRF
+const flash = require('connect-flash'); //Serve per spostare dati da una sessione ad un'altra (usando la sessione)
 
 const store = new MongoDBStore({
 	uri: MONGODB_URI, //URI per la connessione al database.
@@ -92,6 +93,7 @@ app.use(
 );
 
 app.use(csrfProtection); //Creiamo un middleware per abilitare la protezione.
+app.use(flash());
 
 app.use((req, res, next) => {
 	if (!req.session.user) {

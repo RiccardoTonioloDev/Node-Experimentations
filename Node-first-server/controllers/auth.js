@@ -2,10 +2,19 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 exports.getLogin = (req, res, next) => {
+	let message = req.flash('error');
+	if (message.length > 0) {
+		message = message[0];
+	} else {
+		message = null;
+	}
 	res.render('auth/login', {
 		path: '/login',
 		pageTitle: 'Login',
 		isAuthenticated: req.session.isLoggedIn,
+		//Possiamo prelevare la frase di errore scelta, in questo modo:
+		errorMessage: message,
+		//Una volta usato questo metodo, il valore associato ad error, verrà rimosso.
 	});
 };
 
@@ -16,6 +25,8 @@ exports.postLogin = (req, res, next) => {
 		//User.findById('62ceddab0afbe1c5aa424966')
 		.then((user) => {
 			if (!user) {
+				//In questo modo salviamo nel valore chiave error, la frase scelta.
+				req.flash('error', 'Invalid email or password.');
 				return res.redirect('/login');
 			}
 			bcrypt
@@ -34,6 +45,7 @@ exports.postLogin = (req, res, next) => {
 							res.redirect('/');
 						});
 					}
+					req.flash('error', 'Invalid email or password.');
 					res.redirect('/login');
 				})
 				.catch((err) => {
@@ -68,6 +80,10 @@ exports.postSignup = (req, res, next) => {
 	User.findOne({ email: email })
 		.then((userDoc) => {
 			if (userDoc) {
+				req.flash(
+					'error',
+					'Email exists already, please pick a different one.'
+				);
 				return res.redirect('/signup'); //L'utente esiste già, quidi lo rimandiamo direttamente alla pagina di signup
 			}
 			return bcrypt
@@ -91,9 +107,16 @@ exports.postSignup = (req, res, next) => {
 };
 
 exports.getSignup = (req, res, next) => {
+	let message = req.flash('error');
+	if (message.length > 0) {
+		message = message[0];
+	} else {
+		message = null;
+	}
 	res.render('auth/signup', {
 		path: '/signup',
 		pageTitle: 'signup',
 		isAuthenticated: false,
+		errorMessage: message,
 	});
 };
