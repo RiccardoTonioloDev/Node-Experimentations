@@ -34,6 +34,11 @@ exports.getLogin = (req, res, next) => {
 		//Possiamo prelevare la frase di errore scelta, in questo modo:
 		errorMessage: message,
 		//Una volta usato questo metodo, il valore associato ad error, verrà rimosso.
+		oldInput: {
+			email: '',
+			password: '',
+		},
+		validationErrors: [],
 	});
 };
 
@@ -42,7 +47,7 @@ exports.postLogin = (req, res, next) => {
 	const password = req.body.password;
 
 	const errors = validationResult(req);
-	if (!errors.isEmpty) {
+	if (!errors.isEmpty()) {
 		//Usiamo lo status 422 per specificare l'invalidità di qualche campo.
 		return res.status(422).render('auth/login', {
 			path: '/login',
@@ -50,15 +55,26 @@ exports.postLogin = (req, res, next) => {
 			//Possiamo prelevare la frase di errore scelta, in questo modo:
 			errorMessage: errors.array()[0],
 			//Una volta usato questo metodo, il valore associato ad error, verrà rimosso.
+			oldInput: { email: email, password: password },
+			validationErrors: errors.array(),
 		});
 	}
 	User.findOne({ email: email })
 		//User.findById('62ceddab0afbe1c5aa424966')
 		.then((user) => {
 			if (!user) {
-				//In questo modo salviamo nel valore chiave error, la frase scelta.
-				req.flash('error', 'Invalid email or password.');
-				return res.redirect('/login');
+				// //In questo modo salviamo nel valore chiave error, la frase scelta.
+				// req.flash('error', 'Invalid email or password.');
+				// return res.redirect('/login');
+				return res.status(422).render('auth/login', {
+					path: '/login',
+					pageTitle: 'Login',
+					//Possiamo prelevare la frase di errore scelta, in questo modo:
+					errorMessage: 'Invalid email or password.',
+					//Una volta usato questo metodo, il valore associato ad error, verrà rimosso.
+					oldInput: { email: email, password: password },
+					validationErrors: [],
+				});
 			}
 			bcrypt
 				.compare(password, user.password)
@@ -76,8 +92,17 @@ exports.postLogin = (req, res, next) => {
 							res.redirect('/');
 						});
 					}
-					req.flash('error', 'Invalid email or password.');
-					res.redirect('/login');
+					// req.flash('error', 'Invalid email or password.');
+					// res.redirect('/login');
+					return res.status(422).render('auth/login', {
+						path: '/login',
+						pageTitle: 'Login',
+						//Possiamo prelevare la frase di errore scelta, in questo modo:
+						errorMessage: 'Invalid email or password.',
+						//Una volta usato questo metodo, il valore associato ad error, verrà rimosso.
+						oldInput: { email: email, password: password },
+						validationErrors: [],
+					});
 				})
 				.catch((err) => {
 					//Non si entra qui se le password non sono uguali, ma solo quando si verifica

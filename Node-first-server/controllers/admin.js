@@ -1,4 +1,5 @@
 const Product = require('../models/products');
+const { validationResult } = require('express-validator');
 
 exports.getAddProduct = (req, res, next) => {
 	//È un possibile modo di proteggere le routes, ma non è scalabile
@@ -15,6 +16,9 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add product',
 		path: '/admin/add-product',
 		editing: false,
+		hasError: false,
+		errorMessage: null,
+		validationErrors: [],
 	});
 }; //abbiamo aggiunto nel form /admin/ prima di product, questo perchè fuori, nell'app, è
 //dichiarato che tutte le routes in questa page appartengono alla path admin.
@@ -26,6 +30,25 @@ exports.postAddProduct = (req, res, next) => {
 	const imageUrl = req.body.imageUrl;
 	const description = req.body.description;
 	const price = req.body.price;
+	const errors = validationResult(req);
+
+	if (!errors.isEmpty()) {
+		return res.status(422).render('admin/edit-product', {
+			pageTitle: 'Add Product',
+			path: '/admin/add-product',
+			editing: false,
+			hasError: true,
+			validationErrors: errors.array(),
+			product: {
+				title: title,
+				imageUrl: imageUrl,
+				description: description,
+				price: price,
+			},
+			errorMessage: errors.array()[0].msg,
+		});
+	}
+
 	const product = new Product({
 		title: title,
 		imageUrl: imageUrl,
@@ -160,6 +183,9 @@ exports.getEditProduct = (req, res, next) => {
 				path: '/admin/edit-product',
 				editing: editMode,
 				product: product,
+				errorMessage: null,
+				validationErrors: [],
+				hasError: false,
 			});
 		})
 		.catch((err) => {
@@ -191,6 +217,25 @@ exports.postEditProduct = (req, res, next) => {
 	const imageUrl = req.body.imageUrl;
 	const description = req.body.description;
 	const price = req.body.price;
+	const errors = validationResult(req);
+
+	if (!errors.isEmpty()) {
+		return res.status(422).render('admin/edit-product', {
+			pageTitle: 'Edit Product',
+			path: '/admin/edit-product',
+			editing: true,
+			hasError: true,
+			validationErrors: errors.array(),
+			product: {
+				title: title,
+				imageUrl: imageUrl,
+				description: description,
+				price: price,
+				_id: id,
+			},
+			errorMessage: errors.array()[0].msg,
+		});
+	}
 
 	Product.findById(id)
 		.then((product) => {

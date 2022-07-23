@@ -13,13 +13,17 @@ router.get('/signup', authController.getSignup);
 router.post(
 	'/login',
 	[
-		body('email').isEmail().withMessage('Insert a valid email.'),
+		body('email')
+			.isEmail()
+			.withMessage('Insert a valid email.')
+			.normalizeEmail(),
 		body(
 			'password',
 			'Insert a valid password (Alphanumeric & with more than 5 characters).'
 		)
 			.isAlphanumeric()
-			.isLength({ min: 5 }),
+			.isLength({ min: 5 })
+			.trim(),
 	],
 	authController.postLogin
 );
@@ -45,7 +49,8 @@ router.post(
 						);
 					}
 				});
-			}),
+			})
+			.normalizeEmail(),
 		//Il body va a estrarre la parola password, solo all'interno del body.
 		body(
 			'password',
@@ -54,14 +59,17 @@ router.post(
 			//viene estratto dai vari validatori.
 		)
 			.isLength({ min: 5 })
-			.isAlphanumeric(),
-		body('confirmPassword').custom((value, { req }) => {
-			if (value !== req.body.password) {
-				throw new Error('Passwords have to match');
-			}
-			return true;
-			//In un validator custom BISOGNA SEMPRE METTERE IL TRUE se il campo è valido.
-		}),
+			.isAlphanumeric()
+			.trim(),
+		body('confirmPassword')
+			.trim()
+			.custom((value, { req }) => {
+				if (value !== req.body.password) {
+					throw new Error('Passwords have to match');
+				}
+				return true;
+				//In un validator custom BISOGNA SEMPRE METTERE IL TRUE se il campo è valido.
+			}),
 	],
 	authController.postSignup
 ); //Aggiungiamo un middleware per effettuare una
