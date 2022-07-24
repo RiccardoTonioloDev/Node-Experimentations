@@ -96,25 +96,30 @@ app.use(csrfProtection); //Creiamo un middleware per abilitare la protezione.
 app.use(flash());
 
 app.use((req, res, next) => {
-	if (!req.session.user) {
-		return next();
-	}
-	User.findById(req.session.user._id)
-		.then((user) => {
-			req.user = user;
-			next();
-		})
-		.catch((err) => {
-			console.log('Error while loading user from session: ', err);
-		});
-});
-
-app.use((req, res, next) => {
 	//In questo modo per ogni richiesta, ogni view avrà queste due variabili
 	//di default.
 	res.locals.isAuthenticated = req.session.isLoggedIn;
 	res.locals.csrfToken = req.csrfToken();
 	next();
+});
+
+app.use((req, res, next) => {
+	if (!req.session.user) {
+		return next();
+	}
+	User.findById(req.session.user._id)
+		.then((user) => {
+			if (!user) {
+				return next();
+			}
+			req.user = user;
+			next();
+		})
+		.catch((err) => {
+			//console.log('Error while loading user from session: ', err);
+			//throw new Error(err);
+			next(new Error(err));
+		});
 });
 
 //Ora usiamo le sessioni, quindi questo middleware non ci serve più.
@@ -220,8 +225,22 @@ app.use(shopRoutes); //In questo modo considerà in modo automatico le routes ch
 
 app.use(authRoutes);
 
+app.get('/500', errorController.get500);
+
 //PAGINA DI DEFAULT
 app.use('/', errorController.get404);
+
+//Posizioniamo il gestore degli errori sotto il gestore dei 404, di modo che non
+//venga mai accesso da alcuna richiesta, se non da Express.js stesso, per la
+//gestione degli errori.
+app.use((error, req, res, next) => {
+	console.log(error);
+	res.status(500).render('500', {
+		pageTitle: 'Error Occured',
+		path: '500',
+		isAuthenticated: req.session.isLoggedIn,
+	});
+});
 
 // Visto che ora utilizzeremo mongoDB, tutto ciò che riguarda il server in phpMyAdmin, non serve più.
 // Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });

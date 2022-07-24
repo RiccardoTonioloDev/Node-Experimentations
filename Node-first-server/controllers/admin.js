@@ -68,7 +68,34 @@ exports.postAddProduct = (req, res, next) => {
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {
-			console.log('Error while posting a new product: ', err);
+			// console.log('Error while posting a new product: ', err);
+			//Per quanto sia capibile usare questo tipo di approccio, solitamente
+			//per problemi più grandi, si utilizzano pagine apposite.
+			// return res.status(422).render('admin/edit-product', {
+			// 	pageTitle: 'Add Product',
+			// 	path: '/admin/add-product',
+			// 	editing: false,
+			// 	hasError: true,
+			// 	validationErrors: [],
+			// 	product: {
+			// 		title: title,
+			// 		imageUrl: imageUrl,
+			// 		description: description,
+			// 		price: price,
+			// 	},
+			// 	errorMessage: 'Database operation failed, please try again.',
+			// });
+
+			//Possiamo fare anche così ma sarebbe un'ernorme duplicazione del codice
+			//res.redirect('/500');
+
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			//Quando un errore è passato come argomento in next(), Express lo
+			//identifica subito, e lo gestisce con un middleware apposito.
+			//Ovviamente il middlware speciale lo dovremo creare noi all'interno
+			//di app.js
 		});
 
 	//Commentato in quanto ora facciamo tutto in mongoDB
@@ -141,7 +168,10 @@ exports.getProducts = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('Admin getProducts error: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			// console.log('Admin getProducts error: ', err);
 		});
 	//Ora facciamo tutto in mongoDB
 	// req.user
@@ -189,7 +219,10 @@ exports.getEditProduct = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('getEditProduct admin error: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			// console.log('getEditProduct admin error: ', err);
 		});
 	// req.user
 	//     .getProducts({ where: { id: prodId } }) //Così prendi i prodotti relativi all'utente.
@@ -253,7 +286,10 @@ exports.postEditProduct = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('PostEditProduct error admin: ', err); // Questo catcher, prenderà gli errori eventuali, da entrambi i then.
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			// console.log('PostEditProduct error admin: ', err); // Questo catcher, prenderà gli errori eventuali, da entrambi i then.
 		});
 	// Ora utilizziamo mongoose
 	// const product = new Product(title, price, description, imageUrl, id);
@@ -303,7 +339,10 @@ exports.postDeleteProduct = (req, res, next) => {
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {
-			console.log('Error in effective deletion of a product: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			// console.log('Error in effective deletion of a product: ', err);
 		});
 	// Product.deleteById(id); ora utilizzo sequelize
 	// Product.findByPk(id)

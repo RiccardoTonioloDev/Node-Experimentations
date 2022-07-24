@@ -49,7 +49,9 @@ exports.getProducts = (req, res, next) => {
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
 		})
 		.catch((err) => {
-			console.log('Get index error: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 };
 
@@ -69,7 +71,9 @@ exports.getProduct = (req, res, next) => {
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
 		})
 		.catch((err) => {
-			console.log('Get product by id error: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 	// Product.findById(prodId)
 	//     .then(([product, fieldData]) => {
@@ -113,7 +117,9 @@ exports.getIndex = (req, res, next) => {
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
 		})
 		.catch((err) => {
-			console.log('Get index error: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 };
 
@@ -130,7 +136,9 @@ exports.getCart = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('Error while getting the cart: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 	// Cart.getCart((cart) => {
 	//     Product.fetchAll((products) => {
@@ -179,7 +187,9 @@ exports.postCart = (req, res, next) => {
 			res.redirect('/cart');
 		})
 		.catch((err) => {
-			console.log('Error adding to cart: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 	//Ora usiamo mongoDB
 	// let fetchedCart;
@@ -238,7 +248,9 @@ exports.postCartDeleteProduct = (req, res, next) => {
 			res.redirect('/cart');
 		})
 		.catch((err) => {
-			console.log('Error deleting products: ', console.log(err));
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 };
 
@@ -301,7 +313,9 @@ exports.postOrder = (req, res, next) => {
 			return res.redirect('/orders');
 		})
 		.catch((err) => {
-			console.log('Error on posting an order: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 };
 
@@ -320,6 +334,8 @@ exports.getOrders = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('Error getting orders: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
 		});
 };

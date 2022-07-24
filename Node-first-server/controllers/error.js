@@ -11,3 +11,10 @@ exports.get404 = (req, res, next) => {
 	//qualsiasi file, su qualsiasi sistema operativo.
 	//Send file serve appunto per restituire file.
 };
+exports.get500 = (req, res, next) => {
+	res.status(500).render('500', {
+		pageTitle: 'Error Occured',
+		path: '500',
+		isAuthenticated: req.session.isLoggedIn,
+	});
+};

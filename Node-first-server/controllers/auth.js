@@ -76,7 +76,7 @@ exports.postLogin = (req, res, next) => {
 					validationErrors: [],
 				});
 			}
-			bcrypt
+			return bcrypt
 				.compare(password, user.password)
 				.then((doMatch) => {
 					if (doMatch) {
@@ -105,16 +105,20 @@ exports.postLogin = (req, res, next) => {
 					});
 				})
 				.catch((err) => {
-					//Non si entra qui se le password non sono uguali, ma solo quando si verifica
-					//un errore.
-					if (err) {
-						console.log('Error while comparing passwords: ', err);
-					}
-					res.redirect('/login');
+					console.log(err);
+					// //Non si entra qui se le password non sono uguali, ma solo quando si verifica
+					// //un errore.
+					// if (err) {
+					// 	console.log('Error while comparing passwords: ', err);
+					// }
+					// res.redirect('/login');
 				});
 		})
 		.catch((err) => {
-			console.log('Error while setting user in session: ', user);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			// console.log('Error while setting user in session: ', user);
 		});
 };
 
@@ -179,12 +183,12 @@ exports.postSignup = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('Error while sending email/signUpping: ', err);
-		}) //Ho continuato la sequenza qui, per evitare che anche se l'utente esistesse già, si provasse a creare
-		//un nuovo utente. (Deprecato: questa frase non vale più in quanto la validazione adesso avviene nelle routes.)
-		.catch((err) => {
-			console.log('Error while signup: ', err);
-		});
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			// console.log('Error while sending email/signUpping: ', err);
+		}); //Ho continuato la sequenza qui, per evitare che anche se l'utente esistesse già, si provasse a creare
+	//un nuovo utente. (Deprecato: questa frase non vale più in quanto la validazione adesso avviene nelle routes.)
 };
 
 exports.getSignup = (req, res, next) => {
@@ -256,7 +260,10 @@ exports.postReset = (req, res, next) => {
 				});
 			})
 			.catch((err) => {
-				console.log('Error while adding token to user: ', err);
+				const error = new Error(err);
+				error.httpStatusCode = 500;
+				return next(error);
+				// console.log('Error while adding token to user: ', err);
 			});
 	});
 };
@@ -283,7 +290,10 @@ exports.getNewPassword = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('Error while getting form for new password: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			// console.log('Error while getting form for new password: ', err);
 		});
 };
 
@@ -313,6 +323,9 @@ exports.postNewPassword = (req, res, next) => {
 			res.redirect('/login');
 		})
 		.catch((err) => {
-			console.log('Error while setting the new password: ', err);
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+			// console.log('Error while setting the new password: ', err);
 		});
 };
