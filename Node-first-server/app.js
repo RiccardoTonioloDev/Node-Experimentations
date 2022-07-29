@@ -35,12 +35,41 @@ const MongoDBStore = require('connect-mongodb-session')(session); //Serve per us
 const csrf = require('csurf'); //Per protezione da attacchi di tipo CSRF
 const flash = require('connect-flash'); //Serve per spostare dati da una sessione ad un'altra (usando la sessione)
 
+const multer = require('multer');
+
 const store = new MongoDBStore({
 	uri: MONGODB_URI, //URI per la connessione al database.
 	collection: 'sessions', //collezione dove verranno messe in storage le varie sessioni.
 });
 
 const csrfProtection = csrf();
+
+const fileStorage = multer.diskStorage({
+	//Funzione da utilizzare per specificare dove salvare.
+	destination: (req, file, cb) => {
+		cb(null, 'images');
+	},
+	//Funzione da utilizzare per specificare con che nome salvare.
+	filename: (req, file, cb) => {
+		cb(null, new Date().toISOString() + '-' + file.originalname);
+	},
+	//IL NULL VIENE PASSATO COME PRIMO PARAMETRO, per specificare che non ci sono
+	//errori.
+});
+
+const fileFilter = (req, file, cb) => {
+	if (
+		file.mimetype === 'image/png' ||
+		file.mimetype === 'image/jpg' ||
+		file.mimetype === 'image/jpeg'
+	) {
+		cb(null, true);
+		//In questo caso si passa.
+	} else {
+		cb(null, false);
+		//In questo caso non si passa.
+	}
+};
 
 // const mongoConnect = require("./util/database").mongoConnect; //Cancellato in quanto ora usiamo mongoose
 const User = require('./models/user');
@@ -79,6 +108,11 @@ app.use(express.static(path.join(__dirname, 'public'))); //In questo modo qualsi
 
 app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body parsing, che prima noi
 //dovevamo fare manualmente.
+app.use(
+	multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
+);
+//In questo modo specificheremo a multer il modo in cui dovrà salvare il file, e
+//dove, tramite l'oggetto per il settaggio, creato precedentemente.
 
 app.use(
 	session({

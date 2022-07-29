@@ -27,10 +27,11 @@ exports.postAddProduct = (req, res, next) => {
 	// //Verrà utilizzato solo per richieste entranti in post.
 	// //Esiste anche app.get per fare la stessa cosa ma con il get.
 	const title = req.body.title;
-	const imageUrl = req.body.imageUrl;
+	const imageUrl = req.file;
 	const description = req.body.description;
 	const price = req.body.price;
 	const errors = validationResult(req);
+	console.log(imageUrl);
 
 	if (!errors.isEmpty()) {
 		return res.status(422).render('admin/edit-product', {
