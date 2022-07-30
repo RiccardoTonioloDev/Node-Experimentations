@@ -1,3 +1,4 @@
+const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 const Product = require('../models/products');
@@ -355,6 +356,40 @@ exports.getInvoice = (req, res, next) => {
 			}
 			const invoiceName = 'Invoice-' + orderId + '.pdf';
 			const invoicePath = path.join('Data', 'invoices', invoiceName);
+
+			const pdfDoc = new PDFDocument(); //Crea un nuovo editor di PDF.
+			res.setHeader('Content-Type', 'application/pdf'); //Ci permette di mandare il pdf come risposta visualizzabile.
+			res.setHeader(
+				'Content-Disposition',
+				'inline; filename="' + invoiceName + '"'
+				//Inline ci permette di aprirlo subito all'interno del nostro browser;
+				//Al posto di inline potremmo mettere attached, che ci permette di scaricare
+				//istantaneamente il file.
+			);
+			pdfDoc.pipe(fs.createWriteStream(invoicePath)); //Setta uno stream per scrivere all'interno del file system.
+			pdfDoc.pipe(res); //Allo stesso modo setta uno stream per mandare i dati volta per volta in risposta.
+
+			pdfDoc.fontSize(26).text('Invoice', {
+				underline: true,
+			}); //Scrittura di testo + configurazione;
+			let totalPrice = 0;
+			pdfDoc.text('----------------------');
+			order.products.forEach((prod) => {
+				pdfDoc
+					.fontSize(14)
+					.text(
+						prod.productData.title +
+							' - ' +
+							prod.quantity +
+							'x $' +
+							prod.productData.price
+					);
+				totalPrice += prod.quantity * prod.productData.price;
+			});
+			pdfDoc.fontSize(26).text('----------------------');
+			pdfDoc.fontSize(20).text('Total Price: $' + totalPrice);
+
+			pdfDoc.end(); //Finisce la scrittura, quindi notifica del fatto che non c'è più niente da scrivere.
 			// fs.readFile(invoicePath, (err, data) => { Questo è un modo per mandare file buono solo
 			// se il file che si sta mandando è veramente piccolo, poichè altrimenti bisognerebbe leggere
 			// un file intero, e solo dopo mandarlo
@@ -372,21 +407,22 @@ exports.getInvoice = (req, res, next) => {
 			// 	res.send(data);
 			// });
 
-			const file = fs.createReadStream(invoicePath);
-			//In questo modo creiamo uno stream di lettura verso il path selezionato.
+			//Non facciamo più nemmeno così poichè ora creiamo da zero il nostro file pdf.
+			// const file = fs.createReadStream(invoicePath);
+			// //In questo modo creiamo uno stream di lettura verso il path selezionato.
 
-			res.setHeader('Content-Type', 'application/pdf'); //Ci permette di mandare il pdf come risposta visualizzabile.
-			res.setHeader(
-				'Content-Disposition',
-				'inline; filename="' + invoiceName + '"'
-				//Inline ci permette di aprirlo subito all'interno del nostro browser;
-				//Al posto di inline potremmo mettere attached, che ci permette di scaricare
-				//istantaneamente il file.
-			);
-			file.pipe(res);
-			//In questo modo utilizziamo lo stream creato prima, e lo incanaliamo dentro
-			//uno stream scrivibile(res), di modo da poter passare chunk per chunk, l'intero
-			//file.
+			// res.setHeader('Content-Type', 'application/pdf'); //Ci permette di mandare il pdf come risposta visualizzabile.
+			// res.setHeader(
+			// 	'Content-Disposition',
+			// 	'inline; filename="' + invoiceName + '"'
+			// 	//Inline ci permette di aprirlo subito all'interno del nostro browser;
+			// 	//Al posto di inline potremmo mettere attached, che ci permette di scaricare
+			// 	//istantaneamente il file.
+			// );
+			// file.pipe(res);
+			// //In questo modo utilizziamo lo stream creato prima, e lo incanaliamo dentro
+			// //uno stream scrivibile(res), di modo da poter passare chunk per chunk, l'intero
+			// //file.
 		})
 		.catch((err) => next(err));
 };

@@ -1,5 +1,6 @@
 const Product = require('../models/products');
 const { validationResult } = require('express-validator');
+const fileHelper = require('../util/file');
 
 exports.getAddProduct = (req, res, next) => {
 	//È un possibile modo di proteggere le routes, ma non è scalabile
@@ -298,6 +299,7 @@ exports.postEditProduct = (req, res, next) => {
 			}
 			product.title = title;
 			if (image) {
+				fileHelper(product.imageUrl);
 				product.imageUrl = image.path;
 			}
 			product.description = description;
@@ -352,11 +354,19 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
 	const id = req.body.productId;
-
-	Product //findByIdAndRemove(id) per verificare che sia il vero proprietario dell'oggetto a effettuare l'operazione di rimozione,
-		//utilizziamo questo tipo di comando.
-		.deleteOne({ _id: id, userId: req.user._id })
-		//.deleteById(id) ora usiamo mongoose
+	Product.findById(id)
+		.then((product) => {
+			if (!product) {
+				return next(new Error('Product not found!'));
+			}
+			fileHelper(product.imageUrl);
+			return (
+				Product //findByIdAndRemove(id) per verificare che sia il vero proprietario dell'oggetto a effettuare l'operazione di rimozione,
+					//utilizziamo questo tipo di comando.
+					.deleteOne({ _id: id, userId: req.user._id })
+			);
+			//.deleteById(id) ora usiamo mongoose
+		})
 		.then(() => {
 			console.log('DESTORYED PRODUCT');
 			res.redirect('/admin/products');
@@ -367,6 +377,7 @@ exports.postDeleteProduct = (req, res, next) => {
 			return next(error);
 			// console.log('Error in effective deletion of a product: ', err);
 		});
+
 	// Product.deleteById(id); ora utilizzo sequelize
 	// Product.findByPk(id)
 	//     .then((product) => {
