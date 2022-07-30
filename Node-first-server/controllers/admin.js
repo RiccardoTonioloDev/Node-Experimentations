@@ -27,11 +27,29 @@ exports.postAddProduct = (req, res, next) => {
 	// //Verrà utilizzato solo per richieste entranti in post.
 	// //Esiste anche app.get per fare la stessa cosa ma con il get.
 	const title = req.body.title;
-	const imageUrl = req.file;
+	const image = req.file;
 	const description = req.body.description;
 	const price = req.body.price;
+	if (!image) {
+		//Stiamo facendo qui la validazione di image, poichè multer in automatico
+		//restituisce un elemento falso se il filtraggio non è andato a buon
+		//segno (utilizzando gli oggetti di configurazione in app.js)
+		return res.status(422).render('admin/edit-product', {
+			pageTitle: 'Add Product',
+			path: '/admin/add-product',
+			editing: false,
+			hasError: true,
+			validationErrors: [],
+			product: {
+				title: title,
+				description: description,
+				price: price,
+			},
+			errorMessage: "Attached file it's not an image.",
+		});
+	}
 	const errors = validationResult(req);
-	console.log(imageUrl);
+	console.log(errors.array()[0]);
 
 	if (!errors.isEmpty()) {
 		return res.status(422).render('admin/edit-product', {
@@ -49,6 +67,9 @@ exports.postAddProduct = (req, res, next) => {
 			errorMessage: errors.array()[0].msg,
 		});
 	}
+
+	const imageUrl = image.path;
+	//Restituisce il path per andare a prelevare quella immagine.
 
 	const product = new Product({
 		title: title,
@@ -248,7 +269,7 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
 	const id = req.body.productId;
 	const title = req.body.title;
-	const imageUrl = req.body.imageUrl;
+	const image = req.file;
 	const description = req.body.description;
 	const price = req.body.price;
 	const errors = validationResult(req);
@@ -262,7 +283,6 @@ exports.postEditProduct = (req, res, next) => {
 			validationErrors: errors.array(),
 			product: {
 				title: title,
-				imageUrl: imageUrl,
 				description: description,
 				price: price,
 				_id: id,
@@ -277,7 +297,9 @@ exports.postEditProduct = (req, res, next) => {
 				return res.redirect('/');
 			}
 			product.title = title;
-			product.imageUrl = imageUrl;
+			if (image) {
+				product.imageUrl = image.path;
+			}
 			product.description = description;
 			product.price = price;
 

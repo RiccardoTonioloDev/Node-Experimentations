@@ -18,7 +18,7 @@ router.post(
 	'/add-product',
 	[
 		body('title').isString().isLength({ min: 3 }).trim(),
-		// body('imageUrl').isURL(), ora proviamo a lavorare con i file.
+		// body('imageUrl').isURL(), ora proviamo a lavorare con i file
 		body('price').isFloat(),
 		body('description').isLength({ min: 5, max: 400 }).trim(),
 	],
@@ -35,7 +35,7 @@ router.post(
 	'/edit-product',
 	[
 		body('title').isString().isLength({ min: 3 }).trim(),
-		body('imageUrl').isURL(),
+		// body('imageUrl').isURL(), ora gestiamo dei file.
 		body('price').isFloat(),
 		body('description').isLength({ min: 5, max: 400 }).trim(),
 	],

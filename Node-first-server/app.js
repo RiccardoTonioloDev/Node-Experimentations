@@ -105,6 +105,9 @@ app.set('views', 'views'); //In questo modo con il primo parametro specifichiamo
 app.use(express.static(path.join(__dirname, 'public'))); //In questo modo qualsiasi richiesta di file (quindi elementi statici)
 //viene inoltrata all'interno di path/public (per questo in shop.html, non
 //indirizziamo a public/css/main.css, ma solo a css/main.css)
+app.use('/images', express.static(path.join(__dirname, 'images')));
+//Esattamente come il middleware per contenuti statici sopra, ma in questo caso,
+//specifichiamo il path a cui deve corrispondere.
 
 app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body parsing, che prima noi
 //dovevamo fare manualmente.

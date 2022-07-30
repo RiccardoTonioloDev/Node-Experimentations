@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const Product = require('../models/products');
 const Order = require('../models/order');
 
@@ -338,4 +340,53 @@ exports.getOrders = (req, res, next) => {
 			error.httpStatusCode = 500;
 			return next(error);
 		});
+};
+
+exports.getInvoice = (req, res, next) => {
+	const orderId = req.params.orderId;
+
+	Order.findById(orderId)
+		.then((order) => {
+			if (!order) {
+				return next(new Error('No order found.'));
+			}
+			if (order.user.userId.toString() !== req.user._id.toString()) {
+				return next(new Error('Unauthorized.'));
+			}
+			const invoiceName = 'Invoice-' + orderId + '.pdf';
+			const invoicePath = path.join('Data', 'invoices', invoiceName);
+			// fs.readFile(invoicePath, (err, data) => { Questo è un modo per mandare file buono solo
+			// se il file che si sta mandando è veramente piccolo, poichè altrimenti bisognerebbe leggere
+			// un file intero, e solo dopo mandarlo
+			// 	if (err) {
+			// 		return next(err);
+			// 	}
+			// 	res.setHeader('Content-Type', 'application/pdf'); //Ci permette di mandare il pdf come risposta visualizzabile.
+			// 	res.setHeader(
+			// 		'Content-Disposition',
+			// 		'inline; filename="' + invoiceName + '"'
+			// 		//Inline ci permette di aprirlo subito all'interno del nostro browser;
+			// 		//Al posto di inline potremmo mettere attached, che ci permette di scaricare
+			// 		//istantaneamente il file.
+			// 	);
+			// 	res.send(data);
+			// });
+
+			const file = fs.createReadStream(invoicePath);
+			//In questo modo creiamo uno stream di lettura verso il path selezionato.
+
+			res.setHeader('Content-Type', 'application/pdf'); //Ci permette di mandare il pdf come risposta visualizzabile.
+			res.setHeader(
+				'Content-Disposition',
+				'inline; filename="' + invoiceName + '"'
+				//Inline ci permette di aprirlo subito all'interno del nostro browser;
+				//Al posto di inline potremmo mettere attached, che ci permette di scaricare
+				//istantaneamente il file.
+			);
+			file.pipe(res);
+			//In questo modo utilizziamo lo stream creato prima, e lo incanaliamo dentro
+			//uno stream scrivibile(res), di modo da poter passare chunk per chunk, l'intero
+			//file.
+		})
+		.catch((err) => next(err));
 };
