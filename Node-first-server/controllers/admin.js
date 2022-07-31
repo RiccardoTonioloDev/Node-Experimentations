@@ -50,7 +50,6 @@ exports.postAddProduct = (req, res, next) => {
 		});
 	}
 	const errors = validationResult(req);
-	console.log(errors.array()[0]);
 
 	if (!errors.isEmpty()) {
 		return res.status(422).render('admin/edit-product', {
@@ -352,8 +351,8 @@ exports.postEditProduct = (req, res, next) => {
 	// updatedProduct.save();
 };
 
-exports.postDeleteProduct = (req, res, next) => {
-	const id = req.body.productId;
+exports.deleteProduct = (req, res, next) => {
+	const id = req.params.productId;
 	Product.findById(id)
 		.then((product) => {
 			if (!product) {
@@ -369,13 +368,18 @@ exports.postDeleteProduct = (req, res, next) => {
 		})
 		.then(() => {
 			console.log('DESTORYED PRODUCT');
-			res.redirect('/admin/products');
+			//res.redirect('/admin/products');
+			//Siccome ora lavoriamo tramite client side js requests, la risposta sarà di tipo json.
+			res.status(200).json({ message: 'Success!' });
 		})
 		.catch((err) => {
-			const error = new Error(err);
-			error.httpStatusCode = 500;
-			return next(error);
+			// const error = new Error(err);
+			// error.httpStatusCode = 500;
+			// return next(error);
 			// console.log('Error in effective deletion of a product: ', err);
+
+			//Siccome ora lavoriamo tramite client side js requests, la risposta sarà di tipo json.
+			res.status(500).json({ message: 'Deleting product failed!' });
 		});
 
 	// Product.deleteById(id); ora utilizzo sequelize

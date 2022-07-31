@@ -43,7 +43,9 @@ router.post(
 	adminController.postEditProduct
 );
 
-router.post('/delete-product', isAuth, adminController.postDeleteProduct);
+router.delete('/product/:productId', isAuth, adminController.deleteProduct);
+//Usiamo delete e non post, per rendere più chiara l'intenzione.
+//Volendo avremmo potuto lasciare anche post.
 
 module.exports = router;
 //In questo modo possiamo esportare più elementi facendo riferimento allo stesso file.

@@ -4,6 +4,8 @@ const path = require('path');
 const Product = require('../models/products');
 const Order = require('../models/order');
 
+const ITEMS_PER_PAGE = 2;
+
 exports.getProducts = (req, res, next) => {
 	//Questo è il secondo middleware
 	//console.log("shop.js",adminData.products)
@@ -37,16 +39,36 @@ exports.getProducts = (req, res, next) => {
 	//     .catch((err) => {
 	//         console.log("Get index error: ", err);
 	//     });
-	Product
-		//.fetchAll() ora usiamo mongoose
-		.find() //Il metodo find non restituisce un puntatore, bensì tutti gli elementi
-		//Con grandi quantità di dati è meglio utilizzare il cursore, o magari limitare il
-		//reperimento tramite find.
+	const page = +req.query.page || 1; //Quel + effettua il casting da stringa a numero.
+	//Mentre se page non è definito, grazie all ||1, l'viene dato come valore di default.
+	let totalItems;
+	// Product.fetchAll() Non usiamo più sql puro, quindi questa riga sarà sostituita in: .findAll(), tuttavia stiamo usando mongoDb.
+	Product.find()
+		.countDocuments()
+		.then((numberOfProducts) => {
+			totalItems = numberOfProducts;
+			return (
+				Product
+					//.fetchAll() ora usiamo mongoose
+					.find()
+					.skip((page - 1) * ITEMS_PER_PAGE) //Skippa i primi n risultati (secondo il numero inserito come parametro)
+					.limit(ITEMS_PER_PAGE)
+				//Limita l'estrazione al numero di risultati inseriti come numero tramite parametro.
+				//NOTA BENE: il limit e lo skip avvengono come filtraggi sul database, e non post fetch sul server!!!
+			);
+		})
+
 		.then((products) => {
-			res.render('shop/product-list', {
+			return res.render('shop/product-list', {
 				prods: products,
 				pageTitle: 'Products',
 				path: '/products',
+				currentPage: page,
+				hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+				hasPreviousPage: page > 1,
+				nextPage: page + 1,
+				previousPage: page - 1,
+				lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
 			}); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
 			//dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
@@ -106,15 +128,34 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+	const page = +req.query.page || 1; //Quel + effettua il casting da stringa a numero.
+	//Mentre se page non è definito, grazie all ||1, l'viene dato come valore di default.
+	let totalItems;
 	// Product.fetchAll() Non usiamo più sql puro, quindi questa riga sarà sostituita in: .findAll(), tuttavia stiamo usando mongoDb.
-	Product
-		//.fetchAll() ora usiamo mongoose
-		.find()
+	Product.find()
+		.countDocuments()
+		.then((numberOfProducts) => {
+			totalItems = numberOfProducts;
+			return (
+				Product
+					//.fetchAll() ora usiamo mongoose
+					.find()
+					.skip((page - 1) * ITEMS_PER_PAGE) //Skippa i primi n risultati (secondo il numero inserito come parametro)
+					.limit(ITEMS_PER_PAGE)
+			); //Limita l'estrazione al numero di risultati inseriti come numero tramite parametro.
+		})
+
 		.then((products) => {
 			return res.render('shop/index', {
 				prods: products,
 				pageTitle: 'My Shop',
 				path: '/',
+				currentPage: page,
+				hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+				hasPreviousPage: page > 1,
+				nextPage: page + 1,
+				previousPage: page - 1,
+				lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
 			}); //Usiamo la funzione di rendering, inclusa in express, che sa già (perchè definito prima in app.js)
 			//dove trovare le views, per renderizzare il template shop.pug posizionato all'interno di views.
 			//Il secondo argomento deve essere di tipo oggetto, ed è per questo che ne creiamo uno al volo.
