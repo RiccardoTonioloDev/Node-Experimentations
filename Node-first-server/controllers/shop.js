@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const Product = require('../models/products');
 const Order = require('../models/order');
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY);
+//Inizializziamo stripe, che ci permetterà di creare poi sessioni di pagamento.
 
 const ITEMS_PER_PAGE = 2;
 
@@ -299,13 +302,56 @@ exports.postCartDeleteProduct = (req, res, next) => {
 };
 
 exports.getCheckout = (req, res, next) => {
-	res.render('shop/checkout', {
-		path: '/checkout',
-		pageTitle: 'Checkout',
-	});
+	let products;
+	let total = 0;
+	req.user
+		.populate('cart.items.productId')
+		// .getCart() ora usiamo mongoose, e ha più senso fare così
+		.then((user) => {
+			total = 0;
+			products = user.cart.items;
+			products.forEach((product) => {
+				total += product.quantity * product.productId.price;
+			});
+
+			return stripe.checkout.sessions.create({
+				payment_method_types: ['card'],
+				line_items: products.map((p) => {
+					return {
+						name: p.productId.title,
+						description: p.productId.description,
+						amount: p.productId.price * 100,
+						currency: 'usd',
+						quantity: p.quantity,
+					};
+				}),
+				success_url:
+					req.protocol +
+					'://' +
+					req.get('host') +
+					'/checkout/success',
+				cancel_url:
+					req.protocol + '://' + req.get('host') + '/checkout/cancel',
+			});
+		})
+		.then((session) => {
+			return res.render('shop/checkout', {
+				path: '/checkout',
+				pageTitle: 'Checkout',
+				products: products,
+				totalSum: total,
+				publicKey: process.env.STRIPE_PUBLIC_KEY,
+				sessionId: session.id,
+			});
+		})
+		.catch((err) => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
 };
 
-exports.postOrder = (req, res, next) => {
+exports.getCheckoutSuccess = (req, res, next) => {
 	req.user
 		.populate('cart.items.productId')
 		.then((user) => {
@@ -362,6 +408,64 @@ exports.postOrder = (req, res, next) => {
 			return next(error);
 		});
 };
+
+// exports.postOrder = (req, res, next) => {
+// 	req.user
+// 		.populate('cart.items.productId')
+// 		.then((user) => {
+// 			const products = user.cart.items.map((product) => {
+// 				return {
+// 					quantity: product.quantity,
+// 					productData: { ...product.productId._doc },
+// 					//Devo fare così poichè altrimenti legge solo l'oggetto del
+// 					//product id.
+// 				};
+// 			});
+// 			const order = new Order({
+// 				user: {
+// 					email: req.user.email,
+// 					userId: req.user._id,
+// 				},
+// 				products: products,
+// 			});
+// 			return order.save();
+// 		})
+// 		//Ora usiamo mongoose
+// 		// req.user
+// 		// 	.addOrder()
+// 		// Ora usiamo mongoDB
+// 		// .getCart()
+// 		// .then((cart) => {
+// 		//     fetchedCart = cart;
+// 		//     return cart.getProducts();
+// 		// })
+// 		// .then((products) => {
+// 		//     tmpProducts = products;
+// 		//     return req.user.createOrder();
+// 		// })
+// 		// .then((order) => {
+// 		//     return order.addProducts(
+// 		//         tmpProducts.map((product) => {
+// 		//             product.orderItem = { quantity: product.cartItem.quantity };
+// 		//             return product;
+// 		//         })
+// 		//     );
+// 		// })
+// 		// .then((result) => {
+// 		//     return fetchedCart.setProducts(null); //Serve per cancellare tutti gli elementi
+// 		// })
+// 		.then((result) => {
+// 			return req.user.clearCart();
+// 		})
+// 		.then((result) => {
+// 			return res.redirect('/orders');
+// 		})
+// 		.catch((err) => {
+// 			const error = new Error(err);
+// 			error.httpStatusCode = 500;
+// 			return next(error);
+// 		});
+// };
 
 exports.getOrders = (req, res, next) => {
 	Order.find({ 'user.userId': req.user._id })
