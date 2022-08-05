@@ -1,6 +1,8 @@
 const User = require('../models/user');
 const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 exports.signup = (req, res, next) => {
 	const errors = validationResult(req);
@@ -28,6 +30,55 @@ exports.signup = (req, res, next) => {
 			res.status(201).json({
 				message: 'User created!',
 				userId: result._id,
+			});
+		})
+		.catch((err) => {
+			if (!err.statusCode) {
+				err.statusCode = 500;
+			}
+			next(err);
+		});
+};
+
+exports.login = (req, res, next) => {
+	const email = req.body.email;
+	const password = req.body.password;
+	let loadedUser;
+
+	User.findOne({ email: email })
+		.then((user) => {
+			if (!user) {
+				const error = new Error('User with this email not found.');
+				error.statusCode = 404;
+				throw error;
+			}
+			loadedUser = user;
+			return bcrypt.compare(password, user.password);
+		})
+		.then((isEqual) => {
+			if (!isEqual) {
+				const error = new Error('Wrong password.');
+				error.statusCode = 422;
+				throw error;
+			}
+			//Se siamo arrivati fin qui, l'utente esiste ed è autenticato
+			const token = jwt.sign(
+				//Specifichiamo i dati che saranno contenuti nel token.
+				{
+					email: loadedUser.email,
+					userId: loadedUser._id.toString(),
+				},
+				//Specifichiamo il segreto con cui firmeremo il token.
+				process.env.SECRET_JWT,
+				//Specifichiamo altre opzioni (in questo caso quanto vale il token a livello di tempo)
+				{
+					expiresIn: '1h',
+				}
+			);
+
+			res.status(200).json({
+				token: token,
+				userId: loadedUser._id.toString(),
 			});
 		})
 		.catch((err) => {
