@@ -10,11 +10,12 @@ const router = express.Router();
 router.get('/posts', isAuth, feedController.getPosts);
 
 //      GET /feed/post/:postId
-router.get('/post/:postId', feedController.getPost);
+router.get('/post/:postId', isAuth, feedController.getPost);
 
 //      POST /feed/post
 router.post(
 	'/post',
+	isAuth,
 	[
 		body('title').trim().isLength({ min: 5 }),
 		body('content').trim().isLength({ min: 5 }),
@@ -26,6 +27,7 @@ router.post(
 //     PUT /feed/post/:postId
 router.put(
 	'/post/:postId',
+	isAuth,
 	[
 		body('title').trim().isLength({ min: 5 }),
 		body('content').trim().isLength({ min: 5 }),
@@ -35,6 +37,6 @@ router.put(
 
 //Il metodo DELETE, non può avere un corpo, quindi si usa l'URL.
 //      DELETE /feed/post/:postId
-router.delete('/post/:postId', feedController.deletePost);
+router.delete('/post/:postId', isAuth, feedController.deletePost);
 
 module.exports = router;
