@@ -76,6 +76,17 @@ mongoose
 		`mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster0.wpbzy.mongodb.net/messages?retryWrites=true&w=majority`
 	)
 	.then((res) => {
-		app.listen(8080);
+		const server = app.listen(8080);
+
+		const io = require('./socket').init(server);
+		//Sostanzialmente socket.io ha bisogno di un server HTTP.
+		//Quindi noi gli assegnamo il nostro server Node, di modo che socket.io possa estendere
+		//il protocollo http, creando websockets.
+		io.on('connection', (socket) => {
+			//In questo caso ci stiamo mettendo in attesa di connessione, e nel
+			//caso di una connessione al nostro webSocket, verrà stampato quanto
+			//scritto in console.log().
+			console.log('Client connected!.');
+		});
 	})
 	.catch((err) => console.log(err));

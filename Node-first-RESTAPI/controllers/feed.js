@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { validationResult } = require('express-validator');
 
+const io = require('../socket');
 const Post = require('../models/post');
 const User = require('../models/user');
 
@@ -16,6 +17,8 @@ exports.getPosts = async (req, res, next) => {
 		totalItems = count;
 		const posts = await Post.find()
 			.populate('creator')
+			.sort({ createdAt: -1 })
+			//Fa il sort su createdAt in modalitò decrescente
 			.skip((currentPage - 1) * perPage)
 			.limit(perPage);
 
@@ -67,6 +70,10 @@ exports.createPost = async (req, res, next) => {
 		user.posts.push(post);
 		result = await user.save();
 		//201 come status code è specifico nel dire che una risorsa è stata creata con successo.
+
+		io.getIO().emit('posts', { action: 'create', post: post });
+		//emit serve per mandare a tutti gli utenti con una connessione attiva, un messaggio
+		//tramite websocket.
 		res.status(201).json({
 			message: 'Post created succesfully!',
 			post: post,
@@ -125,7 +132,7 @@ exports.updatePost = async (req, res, next) => {
 		throw error;
 	}
 	try {
-		const post = await Post.findById(postId);
+		const post = await Post.findById(postId).populate('creator');
 
 		if (!post) {
 			const error = new Error('Could not find post.');
@@ -133,7 +140,7 @@ exports.updatePost = async (req, res, next) => {
 			throw error;
 		}
 
-		if (post.creator.toString() !== req.userId) {
+		if (post.creator._id.toString() !== req.userId) {
 			const error = new Error('Not authorized action.');
 			error.statusCode = 403;
 			throw error;
@@ -148,6 +155,11 @@ exports.updatePost = async (req, res, next) => {
 		post.content = content;
 
 		const result = await post.save();
+
+		io.getIO().emit('posts', {
+			action: 'update',
+			post: result,
+		});
 
 		res.status(200).json({
 			message: 'Post updated!',
@@ -186,6 +198,9 @@ exports.deletePost = async (req, res, next) => {
 		user.posts.pull(postId);
 		result = await user.save();
 		console.log(result);
+
+		io.getIO().emit('posts', { action: 'delete', post: postId });
+
 		res.status(200).json({ message: 'Post deleted.' });
 	} catch (err) {
 		if (!err.statusCode) {
