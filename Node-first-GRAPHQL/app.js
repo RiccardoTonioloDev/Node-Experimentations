@@ -56,14 +56,40 @@ app.use((req, res, next) => {
 		'Content-Type, Authorization'
 	);
 	//Per specificare che tipi di headers possono essere settati nella richiesta.
+
+	//Questo ci serve poichè altrimenti graphql andrà a rifiutare qualsiasi richiesta
+	//con un metodo diverso da GET o POST.
+	if (req.method === 'OPTIONS') {
+		return res.sendStatus(200);
+	}
+
 	next();
 });
 
 app.use(
 	'/graphql',
 	graphqlHTTP({
+		//Questo assegna lo schema precedentemente creato
 		schema: graphqlSchema,
+		//Questo assegna i resolver
 		rootValue: graphqlResolver,
+		//Questo serve per attivare il tester delle varie query
+		graphiql: true,
+		customFormatErrorFn(err) {
+			if (!err.originalError) {
+				//In questo caso è solo un errore tecnico (i.e. query scritta male)
+				return err;
+			}
+			const data = err.originalError.data || 'Technical error.';
+			const code = err.code || 500;
+			const message = err.originalError.message || 'An error occurred.';
+
+			return {
+				data: data,
+				code: code,
+				message: message,
+			};
+		},
 	})
 );
 

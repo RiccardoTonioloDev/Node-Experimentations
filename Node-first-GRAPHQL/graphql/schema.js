@@ -1,19 +1,46 @@
 //Si definiscono le varie query, mutazioni, subscriptions.
 const { buildSchema } = require('graphql');
 
-//Il ! sta a significare che è richiesta la stringa come valora di ritorno
+//Il ! sta a significare che è richiesta la stringa come valora di ritorno.
+//type serve a definire un nuovo tipo, da poter utilizzare come variabile di ritorno.
+//possiamo usare anche type per definire mutazioni e query quindi.
+//input serve per definire un oggetto che vogliamo ricevere come input all'interno di una funzione.
 module.exports = buildSchema(`
-    
-    type TestData {
-        text: String!
-        views: Int!
+    type Post{
+        _id: ID!
+        title: String!
+        content: String!
+        imageUrl: String!
+        creator: User!
+        createdAt: String!
+        updatedAt: String!
+    }    
+
+    type User{
+        _id: ID!
+        name: String!
+        email: String!
+        password: String
+        status: String!
+        posts: [Post!]!
     }
 
-    type RootQuery {
-        hello: TestData!
+    input UserInputData {
+        email: String!
+        name: String!
+        password: String!
     }
+
+    type RootQuery{
+        hello: String
+    }
+
+    type RootMutation {
+        createUser(userInput: UserInputData ): User!
+    } 
 
     schema {
         query: RootQuery
+        mutation: RootMutation
     }
 `);
