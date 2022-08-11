@@ -4,9 +4,8 @@ require('dotenv').config();
 module.exports = (req, res, next) => {
 	const authHeader = req.get('Authorization');
 	if (!authHeader) {
-		const error = new Error('Not authenticated');
-		error.statusCode = 401;
-		throw error;
+		req.isAuth = false;
+		return next();
 	}
 	const token = authHeader.split(' ')[1];
 	let decodedToken;
@@ -15,16 +14,16 @@ module.exports = (req, res, next) => {
 	} catch (err) {
 		//Errore del server
 		//QUESTO SPAZIO NON SI ATTIVA SE IL TOKEN NON È STATO VERIFICATO
-		err.statusCode = 500;
-		throw err;
+		req.isAuth = false;
+		return next();
 	}
 	if (!decodedToken) {
-		const error = new Error('Not authenticated.');
-		error.statusCode = 401;
-		throw error;
+		req.isAuth = false;
+		return next();
 	}
 
 	//Se sono arrivato fin qui, vuol dire che siamo autenticati.
 	req.userId = decodedToken.userId;
+	req.isAuth = true;
 	next();
 };

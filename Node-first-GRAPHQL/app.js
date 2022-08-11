@@ -8,6 +8,8 @@ const { graphqlHTTP } = require('express-graphql');
 const graphqlSchema = require('./graphql/schema');
 const graphqlResolver = require('./graphql/resolvers');
 
+const auth = require('./middleware/auth');
+
 require('dotenv').config();
 
 const app = express();
@@ -65,6 +67,10 @@ app.use((req, res, next) => {
 
 	next();
 });
+
+//Questo middleware scorrerà qualsiasi richiesta, e al massimo se un utente non
+//è autenticato, verrà specificato all'interno della richiesta.
+app.use(auth);
 
 app.use(
 	'/graphql',
