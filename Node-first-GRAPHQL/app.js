@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -72,6 +73,23 @@ app.use((req, res, next) => {
 //è autenticato, verrà specificato all'interno della richiesta.
 app.use(auth);
 
+app.put('/post-image', (req, res, next) => {
+	if (!req.isAuth) {
+		throw new Error('Not authenticated.');
+	}
+	//Per verifica di una richiesta di aggiunta immagine.
+	if (!req.file) {
+		return res.status(200).json({ message: 'No file provided!' });
+	}
+	//Per rimozione dell'immagine
+	if (req.body.oldPath) {
+		clearImage(req.body.oldPath);
+	}
+	return res
+		.status(201)
+		.json({ message: 'File stored.', filePath: req.file.path });
+});
+
 app.use(
 	'/graphql',
 	graphqlHTTP({
@@ -117,3 +135,10 @@ mongoose
 		app.listen(8080);
 	})
 	.catch((err) => console.log(err));
+
+const clearImage = (filePath) => {
+	filePath = path.join(__dirname, filePath);
+	fs.unlink(filePath, (err) =>
+		console.log("Eventuale errore nella rimozione dell'immagine: " + err)
+	);
+};
