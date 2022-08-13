@@ -3,6 +3,7 @@ const Post = require('../models/post');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const { clearImage } = require('../util/file');
 require('dotenv').config();
 
 //Si crea la logica per gestire le varie query in entrata
@@ -220,6 +221,66 @@ module.exports = {
 			_id: updatedPost._id.toString(),
 			createdAt: updatedPost.createdAt.toISOString(),
 			updatedAt: updatedPost.updatedAt.toISOString(),
+		};
+	},
+	deletePost: async function ({ id }, req) {
+		if (!req.isAuth) {
+			const error = new Error('Not authenticated!');
+			error.code = 401;
+			throw error;
+		}
+		const post = await Post.findById(id);
+		if (!req.isAuth) {
+			const error = new Error('Not authenticated!');
+			error.code = 401;
+			throw error;
+		}
+		if (post.creator.toString() !== req.userId.toString()) {
+			const error = new Error('Not authorized.');
+			error.code = 403;
+			throw error;
+		}
+		clearImage(post.imageUrl);
+		await Post.findByIdAndRemove(id);
+		const user = await User.findById(req.userId);
+		user.posts.pull(id);
+		await user.save();
+		return true;
+	},
+	user: async function (args, req) {
+		if (!req.isAuth) {
+			const error = new Error('Not authenticated!');
+			error.code = 401;
+			throw error;
+		}
+		const user = await User.findById(req.userId);
+		if (!user) {
+			const error = new Error('User not found.');
+			error.code = 404;
+			throw error;
+		}
+		return {
+			...user._doc,
+			_id: user._id.toString(),
+		};
+	},
+	updateStatus: async function ({ status }, req) {
+		if (!req.isAuth) {
+			const error = new Error('Not authenticated!');
+			error.code = 401;
+			throw error;
+		}
+		const user = await User.findById(req.userId);
+		if (!user) {
+			const error = new Error('User not found.');
+			error.code = 404;
+			throw error;
+		}
+		user.status = status;
+		const awaitedUser = await user.save();
+		return {
+			...awaitedUser._doc,
+			_id: awaitedUser._id.toString(),
 		};
 	},
 };

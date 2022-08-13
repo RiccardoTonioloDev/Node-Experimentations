@@ -2,7 +2,7 @@
 // const routes = require("./routes"); //C'è il './' appunto perchè routes (rimosso)
 //non è un file disponibile a livello
 //globale.
-
+// const https = require('https');
 const express = require('express'); //importiamo express
 require('dotenv').config();
 //const expressHbs = require("express-handlebars");
@@ -15,13 +15,9 @@ require('dotenv').config();
 //app.set('view engine', 'pug');//Possiamo importare direttamente così
 //solo perchè pug è ottimizzato per express.
 
-const MONGODB_URI =
-	'mongodb+srv://' +
-	process.env.USERNAME +
-	':' +
-	process.env.PASSWORD +
-	'@cluster0.wpbzy.mongodb.net/shop?retryWrites=true&w=majority';
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.wpbzy.mongodb.net/${process.env.MONGO_DB_NAME}?retryWrites=true&w=majority`;
 
+const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
 const adminRoutes = require('./routes/admin');
@@ -34,6 +30,13 @@ const MongoDBStore = require('connect-mongodb-session')(session); //Serve per us
 //Gli passiamo la sessione creata nella riga sopra per poterla utilizzare.
 const csrf = require('csurf'); //Per protezione da attacchi di tipo CSRF
 const flash = require('connect-flash'); //Serve per spostare dati da una sessione ad un'altra (usando la sessione)
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
+
+//Useremmo queste variabili se gestissimo noi i certificati SSL/TLS, ma nel nostro caso lo faremmo gestire all'hosting provider.
+// const privateKey = fs.readFileSync('server.key'); //Per leggere tutto d'un pezzo la chiave privata (Azione bloccante per il server)
+// const certificate = fs.readFileSync('server.cert');
 
 const multer = require('multer');
 
@@ -108,6 +111,20 @@ app.use(express.static(path.join(__dirname, 'public'))); //In questo modo qualsi
 app.use('/images', express.static(path.join(__dirname, 'images')));
 //Esattamente come il middleware per contenuti statici sopra, ma in questo caso,
 //specifichiamo il path a cui deve corrispondere.
+
+//Creiamo un filestream, per scrivere man mano le richieste che arrivano.
+const accessLogStream = fs.createWriteStream(
+	path.join(__dirname, 'access.log'),
+	{
+		//Specifica che la scrittura del file di log va in append
+		flags: 'a',
+	}
+);
+
+app.use(helmet()); //per intestazioni sicure
+app.use(compression()); //per compressione degli assets
+app.use(morgan('combined', { stream: accessLogStream })); //per logging delle richieste
+//Usiamo il filestream di prima per loggare le richieste tramite morgan.
 
 app.use(bodyParser.urlencoded({ extended: true })); //Effettuerà tutto il body parsing, che prima noi
 //dovevamo fare manualmente.
@@ -346,7 +363,13 @@ mongoose
 		// 		user.save();
 		// 	}
 		// });
-		app.listen(3000);
+		app.listen(process.env.PORT || 3000);
+		//Se volessimo gestire noi il nostro server in modalità https, allora questo sotto sarebbe il metodo
+		// https
+		// 	.createServer({ key: privateKey, cert: certificate }, app)
+		// 	//Il primo parametro è un oggetto che accetta una chiave privata e una pubblica (cert);
+		// 	//Il secondo parametro è il nostro gestore delle richieste (quindi app, l'oggetto creato tramite express).
+		// 	.listen(process.env.PORT || 3000);
 	})
 	.catch((err) => {
 		console.log('Error connecting to the database or to the server: ', err);

@@ -1,6 +1,6 @@
 # Node-Experimentations
 A playground folder to experiment with NodeJS in different fields:
-- Go [here](https://github.com/RiccardoTonioloDev/Node-Experimentations/tree/main/Node-first-server), to see a <u>feature-complete online marketplace</u>;
+- Go [here](https://github.com/RiccardoTonioloDev/Node-Experimentations/tree/main/Node-first-server), to see a <u>feature-complete online marketplace</u>. You can even try this application [here](https://web-shop-node.herokuapp.com/);
 - Go [here](https://github.com/RiccardoTonioloDev/Node-Experimentations/tree/main/Node-first-RESTAPI), a socialnetwork-like app using <u>REST APIs</u>;
 - Go [here](https://github.com/RiccardoTonioloDev/Node-Experimentations/tree/main/Node-first-GRAPHQL), for the same socialnetwork-like app, but using <u>GraphQL</u> instead.
 

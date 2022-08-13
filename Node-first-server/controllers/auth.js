@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
-const user = require('../models/user');
 const { validationResult } = require('express-validator');
 require('dotenv').config(); //Per ripulire gli output dal file .env
 

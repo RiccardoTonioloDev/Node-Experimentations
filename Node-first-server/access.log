@@ -1,0 +1,5 @@
+::ffff:127.0.0.1 - - [13/Aug/2022:13:30:44 +0000] "GET /cart HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:104.0) Gecko/20100101 Firefox/104.0"
+::ffff:127.0.0.1 - - [13/Aug/2022:13:30:55 +0000] "GET / HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:104.0) Gecko/20100101 Firefox/104.0"
+::ffff:127.0.0.1 - - [13/Aug/2022:13:31:17 +0000] "GET /products HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:104.0) Gecko/20100101 Firefox/104.0"
+::ffff:127.0.0.1 - - [13/Aug/2022:13:56:18 +0000] "GET / HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:104.0) Gecko/20100101 Firefox/104.0"
+::ffff:127.0.0.1 - - [13/Aug/2022:13:56:19 +0000] "GET /favicon.ico HTTP/1.1" 404 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:104.0) Gecko/20100101 Firefox/104.0"
