@@ -121,7 +121,22 @@ const accessLogStream = fs.createWriteStream(
 	}
 );
 
-app.use(helmet()); //per intestazioni sicure
+//Non utilizzato in quanto altrimenti non funzionano le API, indagherò più avanti
+// app.use(
+// 	helmet({
+// 		contentSecurityPolicy: false,
+// 	})
+// );
+
+// app.use(
+// 	helmet.contentSecurityPolicy({
+// 		directives: {
+// 			'script-src': ["'self'", 'js.stripe.com'],
+// 		},
+// 	})
+// );
+// app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+// //per intestazioni sicure
 app.use(compression()); //per compressione degli assets
 app.use(morgan('combined', { stream: accessLogStream })); //per logging delle richieste
 //Usiamo il filestream di prima per loggare le richieste tramite morgan.
