@@ -2,13 +2,15 @@ const num1Element = document.getElementById('num1') as HTMLInputElement;
 const num2Element = document.getElementById('num2') as HTMLInputElement;
 const buttonElement = document.querySelector('button')!;
 
-const numResults: number[] = [];
+const numResults: Array<number> = [];
 const textResults: string[] = [];
 
 type NumOrStr = number | string; //Stiamo definendo un alias per il tipo unione usato a destra.
 type Result = { val:  number; timestamp: Date };
 
 interface ResultObj { val:  number; timestamp: Date };
+
+
 
 function add(num1: NumOrStr, num2: NumOrStr){
     if(typeof num1 === 'number' && typeof num2 === 'number'){
@@ -37,4 +39,14 @@ buttonElement.addEventListener('click', ()=>{
     console.log(stringResult);
     printResult({val: result as number, timestamp: new Date()});
     console.log(numResults, textResults);
+});
+
+const myPromise = new Promise<string>((resolve,reject)=>{
+    setTimeout(()=>{
+        resolve('It worked!');
+    },1000);
+});
+
+myPromise.then((result)=>{
+    console.log(result.split('w'));
 });
